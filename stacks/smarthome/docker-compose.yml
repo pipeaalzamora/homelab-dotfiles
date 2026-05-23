@@ -1,0 +1,81 @@
+# =============================================================
+# Stack: SMARTHOME + IA LOCAL
+# Home Assistant · Ollama · Open WebUI
+# Día 5 — Domótica e inteligencia artificial local
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+services:
+
+  # -----------------------------------------------------------
+  # Home Assistant — Domótica y automatización del hogar
+  # Puerto: 8123
+  # Nota: Primera carga toma 3-5 min (descarga integraciones)
+  # -----------------------------------------------------------
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    # Necesita network_mode: host para descubrir dispositivos IoT en la LAN
+    network_mode: host
+    privileged: true
+    environment:
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro    # Para Bluetooth
+
+  # -----------------------------------------------------------
+  # Ollama — LLMs locales (Mistral, Gemma, Qwen, etc.)
+  # Puerto: 11434
+  # Modelos recomendados para Ryzen 5 5500 + 32 GB RAM:
+  #   mistral:7b · gemma3:4b · qwen2.5:7b
+  # Para GPU (cuando la tengas): descomentar bloque deploy
+  # -----------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-America/Santiago}
+      OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-2}
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-2}
+    volumes:
+      - /srv/data/ollama/models:/root/.ollama
+    ports:
+      - "11434:11434"
+    # Descomentar cuando tengas la RTX 3060/4060
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Open WebUI — Interfaz web para Ollama
+  # Puerto: 3003
+  # -----------------------------------------------------------
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      WEBUI_AUTH: "true"
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/openwebui:/app/backend/data
+    ports:
+      - "3003:8080"
+    networks:
+      - homelab

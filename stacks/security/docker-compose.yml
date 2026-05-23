@@ -1,0 +1,45 @@
+# =============================================================
+# Stack: SECURITY
+# Authelia (SSO) + Redis
+# Día 6 — Autenticación centralizada para servicios públicos
+#
+# ⚠️  Requisito: dominio propio con DNS apuntando al servidor
+#    Sin dominio, usar solo Tailscale y omitir este stack.
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+services:
+
+  # -----------------------------------------------------------
+  # Redis — Backend de sesiones para Authelia
+  # -----------------------------------------------------------
+  authelia-redis:
+    image: redis:7-alpine
+    container_name: authelia-redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Authelia — SSO + 2FA delante de servicios públicos
+  # Puerto: 9091
+  # Config en: /srv/data/authelia/config/
+  # -----------------------------------------------------------
+  authelia:
+    image: authelia/authelia:latest
+    container_name: authelia
+    restart: unless-stopped
+    depends_on:
+      - authelia-redis
+    environment:
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/authelia/config:/config
+    ports:
+      - "9091:9091"
+    networks:
+      - homelab

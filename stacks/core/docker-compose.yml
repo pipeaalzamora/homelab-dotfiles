@@ -1,0 +1,108 @@
+# =============================================================
+# Stack: CORE
+# Portainer · Nginx Proxy Manager · AdGuard Home · Netdata
+# Día 1 — Base del homelab
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+volumes:
+  portainer_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /srv/data/portainer
+
+services:
+
+  # -----------------------------------------------------------
+  # Portainer CE — Gestión visual de Docker
+  # Acceso: http://IP:9000 o via Tailscale
+  # -----------------------------------------------------------
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Nginx Proxy Manager — Reverse proxy + SSL automático
+  # UI Admin: http://IP:81  →  admin@example.com / changeme
+  # -----------------------------------------------------------
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volumes:
+      - /srv/data/npm/data:/data
+      - /srv/data/npm/letsencrypt:/etc/letsencrypt
+    environment:
+      TZ: ${TZ:-America/Santiago}
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # AdGuard Home — DNS bloqueador de ads en red local
+  # UI: http://IP:3000 (primer arranque), luego http://IP:8080
+  # -----------------------------------------------------------
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "3000:3000/tcp"    # Setup inicial
+      - "8080:80/tcp"      # Admin UI después del setup
+    volumes:
+      - /srv/data/adguard/work:/opt/adguardhome/work
+      - /srv/data/adguard/conf:/opt/adguardhome/conf
+    environment:
+      TZ: ${TZ:-America/Santiago}
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Netdata — Monitoreo de sistema en tiempo real
+  # Acceso: http://IP:19999 (solo Tailscale en producción)
+  # -----------------------------------------------------------
+  netdata:
+    image: netdata/netdata:latest
+    container_name: netdata
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /srv/data/netdata:/etc/netdata
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      NETDATA_CLAIM_TOKEN: ""    # Opcional: para Netdata Cloud
+      NETDATA_CLAIM_URL: "https://app.netdata.cloud"

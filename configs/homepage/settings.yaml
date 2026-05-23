@@ -1,0 +1,33 @@
+---
+# =============================================================
+# Homepage — Configuración general
+# Copiar a /srv/data/homepage/config/settings.yaml
+# =============================================================
+
+title: Homelab — Pipe Edition
+description: Panel de control del servidor personal
+favicon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/apple-touch-icon.png
+theme: dark
+color: slate
+
+useEqualHeights: true
+
+layout:
+  🔒 Core:
+    style: row
+    columns: 4
+  ☁️ Personal:
+    style: row
+    columns: 4
+  🎬 Media:
+    style: row
+    columns: 6
+  💼 Dev:
+    style: row
+    columns: 4
+  ⚙️ Automation:
+    style: row
+    columns: 3
+  📊 Ops:
+    style: row
+    columns: 2

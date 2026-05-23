@@ -1,0 +1,159 @@
+# =============================================================
+# Stack: MEDIA
+# Jellyfin · Sonarr · Radarr · Prowlarr · Bazarr · Transmission
+# Día 3 — Streaming automático
+# Acceso: Tailscale (solo interno)
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+services:
+
+  # -----------------------------------------------------------
+  # Jellyfin — Servidor de streaming personal
+  # Puerto: 8096
+  # -----------------------------------------------------------
+  jellyfin:
+    image: linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+      # JELLYFIN_PublishedServerUrl: https://media.tudominio.com  # Descomentar en producción
+    volumes:
+      - /srv/data/jellyfin/config:/config
+      - /srv/data/jellyfin/cache:/cache
+      - /srv/media/movies:/data/movies:ro
+      - /srv/media/series:/data/series:ro
+      - /srv/media/music:/data/music:ro
+    ports:
+      - "8096:8096"
+      - "8920:8920"    # HTTPS opcional
+    # Descomentar para transcoding por GPU NVIDIA (RTX 3060/4060)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Sonarr — Descarga automática de series
+  # Puerto: 8989
+  # -----------------------------------------------------------
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/sonarr/config:/config
+      - /srv/media/series:/data/series
+      - /srv/media/downloads:/data/downloads
+    ports:
+      - "8989:8989"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Radarr — Descarga automática de películas
+  # Puerto: 7878
+  # Fix conocido: deshabilitar IPv6 si falla la conexión
+  # -----------------------------------------------------------
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+    # Deshabilitar IPv6 si el upstream IPv6 está roto
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 1
+    volumes:
+      - /srv/data/radarr/config:/config
+      - /srv/media/movies:/data/movies
+      - /srv/media/downloads:/data/downloads
+    ports:
+      - "7878:7878"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Prowlarr — Indexador central para Sonarr/Radarr
+  # Puerto: 9696
+  # -----------------------------------------------------------
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/prowlarr/config:/config
+    ports:
+      - "9696:9696"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Bazarr — Descarga automática de subtítulos
+  # Puerto: 6767
+  # -----------------------------------------------------------
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/bazarr/config:/config
+      - /srv/media/movies:/data/movies
+      - /srv/media/series:/data/series
+    ports:
+      - "6767:6767"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Transmission — Cliente BitTorrent
+  # Puerto: 9091 (UI) · 51413 (torrent)
+  # -----------------------------------------------------------
+  transmission:
+    image: linuxserver/transmission:latest
+    container_name: transmission
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+      TRANSMISSION_WEB_HOME: /config/web
+      USER: ${TRANSMISSION_USER:-pipe}
+      PASS: ${TRANSMISSION_PASS}
+      PEERPORT: 51413
+    volumes:
+      - /srv/data/transmission/config:/config
+      - /srv/media/downloads/complete:/data/complete
+      - /srv/media/downloads/incomplete:/data/incomplete
+      - /srv/media/downloads/watch:/watch
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    networks:
+      - homelab

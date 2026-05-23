@@ -1,0 +1,164 @@
+# =============================================================
+# Stack: DEV
+# Forgejo · Woodpecker CI · BookStack · Actual Budget
+# Día 4 — Dev y startup
+# Acceso: Tailscale (solo interno)
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+services:
+
+  # -----------------------------------------------------------
+  # Forgejo — Git self-hosted (fork de Gitea)
+  # Puerto SSH: 2222 · Puerto Web: 3000
+  # -----------------------------------------------------------
+  forgejo-db:
+    image: postgres:15-alpine
+    container_name: forgejo-db
+    restart: unless-stopped
+    volumes:
+      - /srv/data/forgejo/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: forgejo
+      POSTGRES_PASSWORD: ${FORGEJO_DB_PASSWORD}
+      POSTGRES_DB: forgejo
+    networks:
+      - homelab
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:7
+    container_name: forgejo
+    restart: unless-stopped
+    depends_on:
+      - forgejo-db
+    environment:
+      USER_UID: ${PUID:-1000}
+      USER_GID: ${PGID:-1000}
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: forgejo-db:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__USER: forgejo
+      FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
+      FORGEJO__server__DOMAIN: git.local
+      FORGEJO__server__ROOT_URL: http://git.local:3000
+      FORGEJO__server__SSH_DOMAIN: git.local
+      FORGEJO__server__SSH_PORT: 2222
+      FORGEJO__security__SECRET_KEY: ${FORGEJO_SECRET_KEY}
+      FORGEJO__security__INTERNAL_TOKEN: ${FORGEJO_INTERNAL_TOKEN}
+    volumes:
+      - /srv/data/forgejo/data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "2222:22"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Woodpecker CI — CI/CD integrado con Forgejo
+  # Puerto: 8000
+  # Requiere: OAuth App en Forgejo antes de arrancar
+  # -----------------------------------------------------------
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:latest
+    container_name: woodpecker-server
+    restart: unless-stopped
+    depends_on:
+      - forgejo
+    environment:
+      WOODPECKER_OPEN: "false"
+      WOODPECKER_HOST: https://${WOODPECKER_SERVER_HOST:-ci.tudominio.com}
+      WOODPECKER_FORGEJO: "true"
+      WOODPECKER_FORGEJO_URL: ${WOODPECKER_FORGEJO_URL:-http://forgejo:3000}
+      WOODPECKER_FORGEJO_CLIENT: ${WOODPECKER_FORGEJO_CLIENT}
+      WOODPECKER_FORGEJO_SECRET: ${WOODPECKER_FORGEJO_SECRET}
+      WOODPECKER_SECRET: ${WOODPECKER_SECRET}
+      WOODPECKER_ADMIN: pipe
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/woodpecker:/var/lib/woodpecker
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    networks:
+      - homelab
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:latest
+    container_name: woodpecker-agent
+    restart: unless-stopped
+    depends_on:
+      - woodpecker-server
+    environment:
+      WOODPECKER_SERVER: woodpecker-server:9000
+      WOODPECKER_SECRET: ${WOODPECKER_SECRET}
+      WOODPECKER_HOSTNAME: woodpecker-agent
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # BookStack — Wiki interna / documentación
+  # Puerto: 6875
+  # Fix conocido: usar DB_USERNAME/DB_PASSWORD (no DB_USER)
+  # -----------------------------------------------------------
+  bookstack-db:
+    image: mariadb:10.11
+    container_name: bookstack-db
+    restart: unless-stopped
+    volumes:
+      - /srv/data/bookstack/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+      MYSQL_DATABASE: bookstack
+      MYSQL_USER: bookstack
+      MYSQL_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+    networks:
+      - homelab
+
+  bookstack:
+    image: linuxserver/bookstack:latest
+    container_name: bookstack
+    restart: unless-stopped
+    depends_on:
+      - bookstack-db
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+      APP_URL: ${BOOKSTACK_APP_URL:-https://wiki.tudominio.com}
+      APP_KEY: ${BOOKSTACK_APP_KEY}
+      DB_HOST: bookstack-db
+      DB_PORT: 3306
+      DB_DATABASE: bookstack
+      DB_USERNAME: bookstack      # Importante: USERNAME, no USER
+      DB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - /srv/data/bookstack/data:/config
+    ports:
+      - "6875:80"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Actual Budget — Finanzas personales self-hosted
+  # Puerto: 5006
+  # -----------------------------------------------------------
+  actual:
+    image: actualbudget/actual-server:latest
+    container_name: actual
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/actual:/data
+    ports:
+      - "5006:5006"
+    networks:
+      - homelab

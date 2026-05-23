@@ -1,0 +1,18 @@
+---
+# =============================================================
+# Authelia — Base de usuarios
+# Copiar a /srv/data/authelia/config/users_database.yml
+#
+# Para generar hash de contraseña:
+#   docker run --rm authelia/authelia:latest \
+#     authelia crypto hash generate argon2 --password 'TU_PASSWORD'
+# =============================================================
+
+users:
+  pipe:
+    displayname: "Pipe"
+    password: "$argon2id$v=19$m=65536,t=3,p=4$REEMPLAZAR_CON_HASH_GENERADO"
+    email: tu@email.com
+    groups:
+      - admins
+      - dev

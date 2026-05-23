@@ -1,0 +1,22 @@
+---
+# =============================================================
+# Homepage — Widgets superiores (info del sistema)
+# Copiar a /srv/data/homepage/config/widgets.yaml
+# =============================================================
+
+- resources:
+    label: Sistema
+    cpu: true
+    memory: true
+    disk: /
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: short
+      hourCycle: h23
+
+- search:
+    provider: duckduckgo
+    target: _blank
