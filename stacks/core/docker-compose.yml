@@ -1,7 +1,7 @@
 # =============================================================
-# Stack: CORE
-# Portainer · Nginx Proxy Manager · AdGuard Home · Netdata
-# Día 1 — Base del homelab
+# Stack: CORE LOCAL
+# Portainer · Nginx Proxy Manager · AdGuard Home · Homepage · Uptime Kuma
+# Base del homelab local-first
 # =============================================================
 
 networks:
@@ -18,12 +18,8 @@ volumes:
 
 services:
 
-  # -----------------------------------------------------------
-  # Portainer CE — Gestión visual de Docker
-  # Acceso: http://IP:9000 o via Tailscale
-  # -----------------------------------------------------------
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.21.5
     container_name: portainer
     restart: unless-stopped
     security_opt:
@@ -33,23 +29,18 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer_data:/data
     ports:
-      - "9000:9000"
-      - "9443:9443"
+      - "127.0.0.1:9443:9443"
     networks:
       - homelab
 
-  # -----------------------------------------------------------
-  # Nginx Proxy Manager — Reverse proxy + SSL automático
-  # UI Admin: http://IP:81  →  admin@example.com / changeme
-  # -----------------------------------------------------------
   npm:
-    image: jc21/nginx-proxy-manager:latest
+    image: jc21/nginx-proxy-manager:2.12.2
     container_name: npm
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
-      - "81:81"
+      - "127.0.0.1:81:81"
     volumes:
       - /srv/data/npm/data:/data
       - /srv/data/npm/letsencrypt:/etc/letsencrypt
@@ -58,19 +49,15 @@ services:
     networks:
       - homelab
 
-  # -----------------------------------------------------------
-  # AdGuard Home — DNS bloqueador de ads en red local
-  # UI: http://IP:3000 (primer arranque), luego http://IP:8080
-  # -----------------------------------------------------------
   adguard:
-    image: adguard/adguardhome:latest
+    image: adguard/adguardhome:v0.107.53
     container_name: adguard
     restart: unless-stopped
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "3000:3000/tcp"    # Setup inicial
-      - "8080:80/tcp"      # Admin UI después del setup
+      - "127.0.0.1:3000:3000/tcp"
+      - "127.0.0.1:8080:80/tcp"
     volumes:
       - /srv/data/adguard/work:/opt/adguardhome/work
       - /srv/data/adguard/conf:/opt/adguardhome/conf
@@ -79,30 +66,31 @@ services:
     networks:
       - homelab
 
-  # -----------------------------------------------------------
-  # Netdata — Monitoreo de sistema en tiempo real
-  # Acceso: http://IP:19999 (solo Tailscale en producción)
-  # -----------------------------------------------------------
-  netdata:
-    image: netdata/netdata:latest
-    container_name: netdata
+  homepage:
+    image: ghcr.io/gethomepage/homepage:v0.10.9
+    container_name: homepage
     restart: unless-stopped
-    pid: host
-    network_mode: host
-    cap_add:
-      - SYS_PTRACE
-      - SYS_ADMIN
-    security_opt:
-      - apparmor:unconfined
-    volumes:
-      - /srv/data/netdata:/etc/netdata
-      - /etc/passwd:/host/etc/passwd:ro
-      - /etc/group:/host/etc/group:ro
-      - /etc/localtime:/etc/localtime:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /etc/os-release:/host/etc/os-release:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      NETDATA_CLAIM_TOKEN: ""    # Opcional: para Netdata Cloud
-      NETDATA_CLAIM_URL: "https://app.netdata.cloud"
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/homepage/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - homelab
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.16
+    container_name: uptime-kuma
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/uptime-kuma:/app/data
+    ports:
+      - "127.0.0.1:3002:3001"
+    networks:
+      - homelab

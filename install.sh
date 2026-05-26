@@ -36,75 +36,70 @@ source "$ENV_FILE"
 # --- Menú de selección ----------------------------------------
 echo "Selecciona el día de instalación:"
 echo ""
-echo "  1) Día 1 — Base del sistema (scripts base + stack core)"
-echo "  2) Día 2 — Nube personal (stack personal)"
-echo "  3) Día 3 — Media (stack media)"
-echo "  4) Día 4 — Dev y startup (stack dev)"
-echo "  5) Día 5 — Automatización + IA (stacks tools + smarthome)"
-echo "  6) Día 6 — Seguridad (stack security)"
-echo "  a) Todo en orden (días 1-6)"
+echo "  1) Base local (scripts base + core)"
+echo "  2) Multimedia familiar (Jellyfin + arr + qBittorrent)"
+echo "  3) Cloud local (Nextcloud)"
+echo "  4) Proyectos y wiki local (Forgejo + BookStack)"
+echo "  5) Backups (Restic)"
+echo "  6) Opcional: automatización (n8n)"
+echo "  a) Ruta recomendada (1-5)"
 echo ""
 read -rp "Opción [1-6/a]: " OPCION
 
-run_day1() {
+compose_up() {
+  local stack="$1"
+  docker compose --env-file "$ENV_FILE" -f "$SCRIPT_DIR/stacks/$stack/docker-compose.yml" up -d
+}
+
+run_core() {
   echo ""
-  echo "━━━ DÍA 1: Sistema base ━━━━━━━━━━━━━━━━━━━━━━"
+  echo "━━━ BASE LOCAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   bash "$SCRIPT_DIR/scripts/01-base.sh"
   bash "$SCRIPT_DIR/scripts/02-docker.sh"
   bash "$SCRIPT_DIR/scripts/03-dirs.sh"
   bash "$SCRIPT_DIR/scripts/04-tailscale.sh"
   copy_env_to_stacks
+  copy_configs_homepage
   echo ""
   echo "Levantando stack core..."
-  docker compose -f "$SCRIPT_DIR/stacks/core/docker-compose.yml" up -d
-  echo "✅  Día 1 completado."
+  compose_up core
+  echo "✅  Base local completada."
 }
 
-run_day2() {
+run_media() {
   echo ""
-  echo "━━━ DÍA 2: Nube personal ━━━━━━━━━━━━━━━━━━━━━"
+  echo "━━━ MULTIMEDIA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  compose_up media
+  echo "✅  Multimedia completado."
+}
+
+run_cloud() {
+  echo ""
+  echo "━━━ CLOUD LOCAL ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   copy_configs_personal
-  docker compose -f "$SCRIPT_DIR/stacks/personal/docker-compose.yml" up -d
-  echo "✅  Día 2 completado."
+  compose_up personal
+  echo "✅  Cloud local completado."
 }
 
-run_day3() {
+run_dev() {
   echo ""
-  echo "━━━ DÍA 3: Media ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  docker compose -f "$SCRIPT_DIR/stacks/media/docker-compose.yml" up -d
-  echo "✅  Día 3 completado."
+  echo "━━━ PROYECTOS Y WIKI ━━━━━━━━━━━━━━━━━━━━━━━━━"
+  compose_up dev
+  echo "✅  Proyectos y wiki completado."
 }
 
-run_day4() {
+run_backups() {
   echo ""
-  echo "━━━ DÍA 4: Dev y startup ━━━━━━━━━━━━━━━━━━━━━"
-  docker compose -f "$SCRIPT_DIR/stacks/dev/docker-compose.yml" up -d
-  echo "✅  Día 4 completado."
+  echo "━━━ BACKUPS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  compose_up backups
+  echo "✅  Backups completado."
 }
 
-run_day5() {
+run_tools() {
   echo ""
-  echo "━━━ DÍA 5: Automatización + IA ━━━━━━━━━━━━━━━"
-  copy_configs_homepage
-  docker compose -f "$SCRIPT_DIR/stacks/tools/docker-compose.yml" up -d
-  docker compose -f "$SCRIPT_DIR/stacks/smarthome/docker-compose.yml" up -d
-  pull_ollama_models
-  echo "✅  Día 5 completado."
-}
-
-run_day6() {
-  echo ""
-  echo "━━━ DÍA 6: Seguridad ━━━━━━━━━━━━━━━━━━━━━━━━━"
-  copy_configs_authelia
-  docker compose -f "$SCRIPT_DIR/stacks/security/docker-compose.yml" up -d
-  echo ""
-  echo "⚠️  Authelia requiere configuración manual:"
-  echo "   1. Editar /srv/data/authelia/config/configuration.yml"
-  echo "   2. Generar hash de contraseña:"
-  echo "      docker run --rm authelia/authelia:latest authelia crypto hash generate argon2 --password 'TU_PASS'"
-  echo "   3. Pegar hash en /srv/data/authelia/config/users_database.yml"
-  echo "   4. docker compose -f stacks/security/docker-compose.yml restart authelia"
-  echo "✅  Día 6 completado."
+  echo "━━━ OPCIONAL: N8N ━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  compose_up tools
+  echo "✅  n8n completado."
 }
 
 copy_env_to_stacks() {
@@ -127,38 +122,19 @@ copy_configs_homepage() {
   echo "[Config] Homepage configs copiados."
 }
 
-copy_configs_authelia() {
-  mkdir -p /srv/data/authelia/config
-  cp "$SCRIPT_DIR/configs/authelia/configuration.yml" /srv/data/authelia/config/configuration.yml
-  cp "$SCRIPT_DIR/configs/authelia/users_database.yml" /srv/data/authelia/config/users_database.yml
-  echo "[Config] Authelia configs copiados."
-  echo "⚠️  Editar /srv/data/authelia/config/configuration.yml con tus valores reales."
-}
-
-pull_ollama_models() {
-  echo "Descargando modelos Ollama recomendados para Ryzen 5 5500 + 32 GB RAM..."
-  echo "(Puede tardar varios minutos según la conexión)"
-  # Esperar a que Ollama arranque
-  sleep 10
-  docker exec -it ollama ollama pull mistral:7b   || true
-  docker exec -it ollama ollama pull gemma3:4b    || true
-  echo "[Ollama] Modelos descargados."
-}
-
 case "$OPCION" in
-  1) run_day1 ;;
-  2) run_day2 ;;
-  3) run_day3 ;;
-  4) run_day4 ;;
-  5) run_day5 ;;
-  6) run_day6 ;;
+  1) run_core ;;
+  2) run_media ;;
+  3) run_cloud ;;
+  4) run_dev ;;
+  5) run_backups ;;
+  6) run_tools ;;
   a|A)
-    run_day1
-    run_day2
-    run_day3
-    run_day4
-    run_day5
-    run_day6
+    run_core
+    run_media
+    run_cloud
+    run_dev
+    run_backups
     ;;
   *)
     echo "Opción no válida."

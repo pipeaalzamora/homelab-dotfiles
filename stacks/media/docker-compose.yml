@@ -1,8 +1,7 @@
 # =============================================================
 # Stack: MEDIA
-# Jellyfin · Sonarr · Radarr · Prowlarr · Bazarr · Transmission
-# Día 3 — Streaming automático
-# Acceso: Tailscale (solo interno)
+# Jellyfin · Jellyseerr · Sonarr · Radarr · Prowlarr · Bazarr · qBittorrent
+# Streaming automático local para uso familiar
 # =============================================================
 
 networks:
@@ -16,7 +15,7 @@ services:
   # Puerto: 8096
   # -----------------------------------------------------------
   jellyfin:
-    image: linuxserver/jellyfin:latest
+    image: linuxserver/jellyfin:10.10.3
     container_name: jellyfin
     restart: unless-stopped
     environment:
@@ -32,7 +31,6 @@ services:
       - /srv/media/music:/data/music:ro
     ports:
       - "8096:8096"
-      - "8920:8920"    # HTTPS opcional
     # Descomentar para transcoding por GPU NVIDIA (RTX 3060/4060)
     # deploy:
     #   resources:
@@ -44,12 +42,26 @@ services:
     networks:
       - homelab
 
+  jellyseerr:
+    image: fallenbagel/jellyseerr:2.2.3
+    container_name: jellyseerr
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - /srv/data/jellyseerr/config:/app/config
+    ports:
+      - "5055:5055"
+    networks:
+      - homelab
+
   # -----------------------------------------------------------
   # Sonarr — Descarga automática de series
   # Puerto: 8989
   # -----------------------------------------------------------
   sonarr:
-    image: linuxserver/sonarr:latest
+    image: linuxserver/sonarr:4.0.11
     container_name: sonarr
     restart: unless-stopped
     environment:
@@ -61,7 +73,7 @@ services:
       - /srv/media/series:/data/series
       - /srv/media/downloads:/data/downloads
     ports:
-      - "8989:8989"
+      - "127.0.0.1:8989:8989"
     networks:
       - homelab
 
@@ -71,7 +83,7 @@ services:
   # Fix conocido: deshabilitar IPv6 si falla la conexión
   # -----------------------------------------------------------
   radarr:
-    image: linuxserver/radarr:latest
+    image: linuxserver/radarr:5.17.2
     container_name: radarr
     restart: unless-stopped
     environment:
@@ -86,7 +98,7 @@ services:
       - /srv/media/movies:/data/movies
       - /srv/media/downloads:/data/downloads
     ports:
-      - "7878:7878"
+      - "127.0.0.1:7878:7878"
     networks:
       - homelab
 
@@ -95,7 +107,7 @@ services:
   # Puerto: 9696
   # -----------------------------------------------------------
   prowlarr:
-    image: linuxserver/prowlarr:latest
+    image: linuxserver/prowlarr:1.28.2
     container_name: prowlarr
     restart: unless-stopped
     environment:
@@ -105,7 +117,7 @@ services:
     volumes:
       - /srv/data/prowlarr/config:/config
     ports:
-      - "9696:9696"
+      - "127.0.0.1:9696:9696"
     networks:
       - homelab
 
@@ -114,7 +126,7 @@ services:
   # Puerto: 6767
   # -----------------------------------------------------------
   bazarr:
-    image: linuxserver/bazarr:latest
+    image: linuxserver/bazarr:1.5.1
     container_name: bazarr
     restart: unless-stopped
     environment:
@@ -126,33 +138,29 @@ services:
       - /srv/media/movies:/data/movies
       - /srv/media/series:/data/series
     ports:
-      - "6767:6767"
+      - "127.0.0.1:6767:6767"
     networks:
       - homelab
 
   # -----------------------------------------------------------
-  # Transmission — Cliente BitTorrent
-  # Puerto: 9091 (UI) · 51413 (torrent)
+  # qBittorrent — Cliente BitTorrent
+  # UI local: http://127.0.0.1:8081
   # -----------------------------------------------------------
-  transmission:
-    image: linuxserver/transmission:latest
-    container_name: transmission
+  qbittorrent:
+    image: linuxserver/qbittorrent:5.0.3
+    container_name: qbittorrent
     restart: unless-stopped
     environment:
       PUID: ${PUID:-1000}
       PGID: ${PGID:-1000}
       TZ: ${TZ:-America/Santiago}
-      TRANSMISSION_WEB_HOME: /config/web
-      USER: ${TRANSMISSION_USER:-pipe}
-      PASS: ${TRANSMISSION_PASS}
-      PEERPORT: 51413
+      WEBUI_PORT: 8080
+      TORRENTING_PORT: 51413
     volumes:
-      - /srv/data/transmission/config:/config
-      - /srv/media/downloads/complete:/data/complete
-      - /srv/media/downloads/incomplete:/data/incomplete
-      - /srv/media/downloads/watch:/watch
+      - /srv/data/qbittorrent/config:/config
+      - /srv/media/downloads:/data/downloads
     ports:
-      - "9091:9091"
+      - "127.0.0.1:8081:8080"
       - "51413:51413"
       - "51413:51413/udp"
     networks:

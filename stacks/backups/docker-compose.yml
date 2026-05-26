@@ -1,0 +1,38 @@
+# =============================================================
+# Stack: BACKUPS
+# Restic
+# Configuración respaldable localmente o hacia almacenamiento externo cifrado
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+services:
+
+  restic:
+    image: mazzolino/restic:1.7.1
+    container_name: restic
+    restart: unless-stopped
+    hostname: homelab-pipe
+    environment:
+      TZ: ${TZ:-America/Santiago}
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-/mnt/restic-repo}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      BACKUP_CRON: "0 3 * * *"
+      RESTIC_BACKUP_SOURCES: /backup
+      RESTIC_BACKUP_ARGS: >-
+        --tag homelab
+        --exclude=/backup/data/jellyfin/cache
+      RESTIC_FORGET_ARGS: >-
+        --keep-last 7
+        --keep-daily 14
+        --keep-weekly 4
+        --keep-monthly 3
+    volumes:
+      - /srv/data:/backup/data:ro
+      - /srv/cloud:/backup/cloud:ro
+      - /srv/homelab:/backup/homelab:ro
+      - /srv/backups/restic-repo:/mnt/restic-repo
+    networks:
+      - homelab

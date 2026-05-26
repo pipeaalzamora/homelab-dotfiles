@@ -6,100 +6,72 @@
 
 - 🔒 Core:
     - Portainer:
-        href: http://homelab:9443
+        href: https://portainer.home
         description: Gestión Docker
         icon: portainer.png
     - Nginx Proxy Manager:
-        href: http://homelab:81
+        href: http://proxy.home
         description: Reverse proxy
         icon: nginx-proxy-manager.png
     - AdGuard Home:
-        href: http://homelab:8080
+        href: http://dns.home
         description: DNS bloqueador
         icon: adguard-home.png
-    - Netdata:
-        href: http://homelab:19999
-        description: Monitoreo sistema
-        icon: netdata.png
 
 - ☁️ Personal:
     - Nextcloud:
-        href: https://cloud.tudominio.com
-        description: Nube personal
+        href: http://cloud.home
+        description: Google Drive local
         icon: nextcloud.png
-    - Immich:
-        href: https://photos.tudominio.com
-        description: Fotos y videos
-        icon: immich.png
-    - Vaultwarden:
-        href: https://vault.tudominio.com
-        description: Gestor contraseñas
-        icon: vaultwarden.png
-    - Paperless:
-        href: https://docs.tudominio.com
-        description: Documentos
-        icon: paperless-ngx.png
 
 - 🎬 Media:
     - Jellyfin:
-        href: https://media.tudominio.com
+        href: http://jellyfin.home
         description: Streaming personal
         icon: jellyfin.png
+    - Jellyseerr:
+        href: http://requests.home
+        description: Pedidos familiares
+        icon: jellyseerr.png
     - Sonarr:
-        href: http://homelab:8989
+        href: http://sonarr.home
         description: Series
         icon: sonarr.png
     - Radarr:
-        href: http://homelab:7878
+        href: http://radarr.home
         description: Películas
         icon: radarr.png
     - Prowlarr:
-        href: http://homelab:9696
+        href: http://prowlarr.home
         description: Indexadores
         icon: prowlarr.png
     - Bazarr:
-        href: http://homelab:6767
+        href: http://bazarr.home
         description: Subtítulos
         icon: bazarr.png
-    - Transmission:
-        href: http://homelab:9091
+    - qBittorrent:
+        href: http://torrent.home
         description: Torrents
-        icon: transmission.png
+        icon: qbittorrent.png
 
 - 💼 Dev:
     - Forgejo:
-        href: https://git.tudominio.com
+        href: http://git.home
         description: Git self-hosted
         icon: gitea.png
-    - Woodpecker CI:
-        href: https://ci.tudominio.com
-        description: CI/CD
-        icon: woodpecker-ci.png
     - BookStack:
-        href: https://wiki.tudominio.com
+        href: http://wiki.home
         description: Wiki interna
         icon: bookstack.png
-    - Actual Budget:
-        href: https://budget.tudominio.com
-        description: Finanzas
-        icon: actual-budget.png
 
-- ⚙️ Automation:
+- ⚙️ Opcional:
     - n8n:
-        href: https://flows.tudominio.com
+        href: http://flows.home
         description: Automatización
         icon: n8n.png
-    - Home Assistant:
-        href: https://home.tudominio.com
-        description: Domótica
-        icon: home-assistant.png
-    - Ollama / Open WebUI:
-        href: http://homelab:3003
-        description: IA local
-        icon: ollama.png
 
 - 📊 Ops:
     - Uptime Kuma:
-        href: https://status.tudominio.com
+        href: http://status.home
         description: Monitor servicios
         icon: uptime-kuma.png

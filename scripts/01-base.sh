@@ -42,9 +42,16 @@ cp "$SSH_CONFIG" "${SSH_CONFIG}.bak.$(date +%Y%m%d)"
 
 # Aplicar configuración segura
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' "$SSH_CONFIG"
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' "$SSH_CONFIG"
 sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' "$SSH_CONFIG"
 sed -i 's/^#\?X11Forwarding.*/X11Forwarding no/' "$SSH_CONFIG"
+
+if [[ -s /home/pipe/.ssh/authorized_keys ]]; then
+  sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' "$SSH_CONFIG"
+  echo "[SSH] PasswordAuthentication deshabilitado: llave SSH encontrada para pipe."
+else
+  sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' "$SSH_CONFIG"
+  echo "[SSH] PasswordAuthentication sigue activo: agrega una llave SSH antes de deshabilitarlo."
+fi
 
 # Agregar opciones si no existen
 grep -q "^AllowUsers" "$SSH_CONFIG" || echo "AllowUsers pipe" >> "$SSH_CONFIG"
