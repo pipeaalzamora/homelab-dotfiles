@@ -36,20 +36,52 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
     └── .env.example
 ```
 
-## Discos Recomendados
+## Instalacion Local En Este PC
+
+Para probarlo en tu computador actual, usa:
+
+```bash
+cp env/.env.example env/.env
+nano env/.env
+chmod +x install-local.sh
+./install-local.sh
+```
+
+Por defecto usa:
+
+```txt
+/home/pipeaalzamora/homelab
+```
+
+Ese path se controla con `HOMELAB_ROOT` en `env/.env`.
+
+El instalador local no toca SSH, UFW, Tailscale ni paquetes del sistema. Solo crea carpetas, copia configs y levanta stacks Docker.
+
+Si Docker responde con permiso denegado, corrige el acceso en una terminal normal:
+
+```bash
+sudo groupadd -f docker
+sudo usermod -aG docker "$USER"
+newgrp docker
+docker ps
+```
+
+Si `/var/run/docker.sock` no pertenece al grupo `docker`, reinicia Docker o el equipo y vuelve a probar.
+
+## Discos Recomendados Para Servidor Dedicado
 
 Con SSD de 256 GB y HDD de 8 TB:
 
 ```txt
-/srv/data      -> SSD: configs, bases de datos y estado de contenedores
-/srv/cloud     -> HDD: archivos de Nextcloud
-/srv/media     -> HDD: peliculas, series, musica y descargas
-/srv/backups   -> HDD o destino externo temporal
+HOMELAB_ROOT/data      -> SSD: configs, bases de datos y estado de contenedores
+HOMELAB_ROOT/cloud     -> HDD: archivos de Nextcloud
+HOMELAB_ROOT/media     -> HDD: peliculas, series, musica y descargas
+HOMELAB_ROOT/backups   -> HDD o destino externo temporal
 ```
 
 Si el HDD se monta en otro punto, ajusta los bind mounts antes de instalar.
 
-## Instalacion
+## Instalacion En Servidor Dedicado
 
 ```bash
 cp env/.env.example env/.env
@@ -77,6 +109,9 @@ Servicios familiares:
 Jellyfin    http://IP_DEL_SERVIDOR:8096
 Jellyseerr  http://IP_DEL_SERVIDOR:5055
 Nextcloud   http://IP_DEL_SERVIDOR:8082
+Homepage    http://IP_DEL_SERVIDOR:3001
+NPM         http://127.0.0.1:8181
+AdGuard UI  http://127.0.0.1:8080
 ```
 
 Paneles administrativos quedan enlazados a `127.0.0.1` cuando es posible. Para acceder desde tu equipo usa un tunel SSH o configura Nginx Proxy Manager con DNS local.
@@ -143,7 +178,7 @@ No subas:
 - Fotos/documentos personales
 - Libreria multimedia
 
-Restic queda preparado para respaldar `/srv/data`, `/srv/cloud` y `/srv/homelab`. Para que el backup sea real, usa tambien un destino fuera del servidor: disco USB rotado, NAS, otro equipo o almacenamiento remoto cifrado.
+Restic queda preparado para respaldar `HOMELAB_ROOT/data`, `HOMELAB_ROOT/cloud` y `HOMELAB_ROOT/homelab`. Para que el backup sea real, usa tambien un destino fuera del servidor: disco USB rotado, NAS, otro equipo o almacenamiento remoto cifrado.
 
 ## Notas De Seguridad
 

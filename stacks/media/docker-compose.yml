@@ -15,7 +15,7 @@ services:
   # Puerto: 8096
   # -----------------------------------------------------------
   jellyfin:
-    image: linuxserver/jellyfin:10.10.3
+    image: linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
     environment:
@@ -24,11 +24,11 @@ services:
       TZ: ${TZ:-America/Santiago}
       # JELLYFIN_PublishedServerUrl: https://media.tudominio.com  # Descomentar en producción
     volumes:
-      - /srv/data/jellyfin/config:/config
-      - /srv/data/jellyfin/cache:/cache
-      - /srv/media/movies:/data/movies:ro
-      - /srv/media/series:/data/series:ro
-      - /srv/media/music:/data/music:ro
+      - ${HOMELAB_ROOT:-/srv}/data/jellyfin/config:/config
+      - ${HOMELAB_ROOT:-/srv}/data/jellyfin/cache:/cache
+      - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies:ro
+      - ${HOMELAB_ROOT:-/srv}/media/series:/data/series:ro
+      - ${HOMELAB_ROOT:-/srv}/media/music:/data/music:ro
     ports:
       - "8096:8096"
     # Descomentar para transcoding por GPU NVIDIA (RTX 3060/4060)
@@ -43,14 +43,14 @@ services:
       - homelab
 
   jellyseerr:
-    image: fallenbagel/jellyseerr:2.2.3
+    image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
     restart: unless-stopped
     environment:
       LOG_LEVEL: info
       TZ: ${TZ:-America/Santiago}
     volumes:
-      - /srv/data/jellyseerr/config:/app/config
+      - ${HOMELAB_ROOT:-/srv}/data/jellyseerr/config:/app/config
     ports:
       - "5055:5055"
     networks:
@@ -61,7 +61,7 @@ services:
   # Puerto: 8989
   # -----------------------------------------------------------
   sonarr:
-    image: linuxserver/sonarr:4.0.11
+    image: linuxserver/sonarr:latest
     container_name: sonarr
     restart: unless-stopped
     environment:
@@ -69,9 +69,9 @@ services:
       PGID: ${PGID:-1000}
       TZ: ${TZ:-America/Santiago}
     volumes:
-      - /srv/data/sonarr/config:/config
-      - /srv/media/series:/data/series
-      - /srv/media/downloads:/data/downloads
+      - ${HOMELAB_ROOT:-/srv}/data/sonarr/config:/config
+      - ${HOMELAB_ROOT:-/srv}/media/series:/data/series
+      - ${HOMELAB_ROOT:-/srv}/media/downloads:/data/downloads
     ports:
       - "127.0.0.1:8989:8989"
     networks:
@@ -83,7 +83,7 @@ services:
   # Fix conocido: deshabilitar IPv6 si falla la conexión
   # -----------------------------------------------------------
   radarr:
-    image: linuxserver/radarr:5.17.2
+    image: linuxserver/radarr:latest
     container_name: radarr
     restart: unless-stopped
     environment:
@@ -94,9 +94,9 @@ services:
     sysctls:
       net.ipv6.conf.all.disable_ipv6: 1
     volumes:
-      - /srv/data/radarr/config:/config
-      - /srv/media/movies:/data/movies
-      - /srv/media/downloads:/data/downloads
+      - ${HOMELAB_ROOT:-/srv}/data/radarr/config:/config
+      - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies
+      - ${HOMELAB_ROOT:-/srv}/media/downloads:/data/downloads
     ports:
       - "127.0.0.1:7878:7878"
     networks:
@@ -107,7 +107,7 @@ services:
   # Puerto: 9696
   # -----------------------------------------------------------
   prowlarr:
-    image: linuxserver/prowlarr:1.28.2
+    image: linuxserver/prowlarr:latest
     container_name: prowlarr
     restart: unless-stopped
     environment:
@@ -115,9 +115,23 @@ services:
       PGID: ${PGID:-1000}
       TZ: ${TZ:-America/Santiago}
     volumes:
-      - /srv/data/prowlarr/config:/config
+      - ${HOMELAB_ROOT:-/srv}/data/prowlarr/config:/config
     ports:
       - "127.0.0.1:9696:9696"
+    networks:
+      - homelab
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      LOG_HTML: "false"
+      CAPTCHA_SOLVER: none
+      TZ: ${TZ:-America/Santiago}
+    ports:
+      - "127.0.0.1:8191:8191"
     networks:
       - homelab
 
@@ -126,7 +140,7 @@ services:
   # Puerto: 6767
   # -----------------------------------------------------------
   bazarr:
-    image: linuxserver/bazarr:1.5.1
+    image: linuxserver/bazarr:latest
     container_name: bazarr
     restart: unless-stopped
     environment:
@@ -134,9 +148,9 @@ services:
       PGID: ${PGID:-1000}
       TZ: ${TZ:-America/Santiago}
     volumes:
-      - /srv/data/bazarr/config:/config
-      - /srv/media/movies:/data/movies
-      - /srv/media/series:/data/series
+      - ${HOMELAB_ROOT:-/srv}/data/bazarr/config:/config
+      - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies
+      - ${HOMELAB_ROOT:-/srv}/media/series:/data/series
     ports:
       - "127.0.0.1:6767:6767"
     networks:
@@ -147,7 +161,7 @@ services:
   # UI local: http://127.0.0.1:8081
   # -----------------------------------------------------------
   qbittorrent:
-    image: linuxserver/qbittorrent:5.0.3
+    image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: unless-stopped
     environment:
@@ -157,8 +171,8 @@ services:
       WEBUI_PORT: 8080
       TORRENTING_PORT: 51413
     volumes:
-      - /srv/data/qbittorrent/config:/config
-      - /srv/media/downloads:/data/downloads
+      - ${HOMELAB_ROOT:-/srv}/data/qbittorrent/config:/config
+      - ${HOMELAB_ROOT:-/srv}/media/downloads:/data/downloads
     ports:
       - "127.0.0.1:8081:8080"
       - "51413:51413"

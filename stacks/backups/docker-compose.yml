@@ -30,9 +30,9 @@ services:
         --keep-weekly 4
         --keep-monthly 3
     volumes:
-      - /srv/data:/backup/data:ro
-      - /srv/cloud:/backup/cloud:ro
-      - /srv/homelab:/backup/homelab:ro
-      - /srv/backups/restic-repo:/mnt/restic-repo
+      - ${HOMELAB_ROOT:-/srv}/data:/backup/data:ro
+      - ${HOMELAB_ROOT:-/srv}/cloud:/backup/cloud:ro
+      - ${HOMELAB_ROOT:-/srv}/homelab:/backup/homelab:ro
+      - ${HOMELAB_ROOT:-/srv}/backups/restic-repo:/mnt/restic-repo
     networks:
       - homelab

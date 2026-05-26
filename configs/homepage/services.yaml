@@ -6,72 +6,76 @@
 
 - 🔒 Core:
     - Portainer:
-        href: https://portainer.home
+        href: https://localhost:9443
         description: Gestión Docker
         icon: portainer.png
     - Nginx Proxy Manager:
-        href: http://proxy.home
+        href: http://localhost:8181
         description: Reverse proxy
         icon: nginx-proxy-manager.png
     - AdGuard Home:
-        href: http://dns.home
+        href: http://localhost:8080
         description: DNS bloqueador
         icon: adguard-home.png
 
 - ☁️ Personal:
     - Nextcloud:
-        href: http://cloud.home
+        href: http://localhost:8082
         description: Google Drive local
         icon: nextcloud.png
 
 - 🎬 Media:
     - Jellyfin:
-        href: http://jellyfin.home
+        href: http://localhost:8096
         description: Streaming personal
         icon: jellyfin.png
     - Jellyseerr:
-        href: http://requests.home
+        href: http://localhost:5055
         description: Pedidos familiares
         icon: jellyseerr.png
     - Sonarr:
-        href: http://sonarr.home
+        href: http://localhost:8989
         description: Series
         icon: sonarr.png
     - Radarr:
-        href: http://radarr.home
+        href: http://localhost:7878
         description: Películas
         icon: radarr.png
     - Prowlarr:
-        href: http://prowlarr.home
+        href: http://localhost:9696
         description: Indexadores
         icon: prowlarr.png
+    - FlareSolverr:
+        href: http://localhost:8191
+        description: Bypass Cloudflare para Prowlarr
+        icon: flaresolverr.png
     - Bazarr:
-        href: http://bazarr.home
+        href: http://localhost:6767
         description: Subtítulos
         icon: bazarr.png
     - qBittorrent:
-        href: http://torrent.home
+        href: http://localhost:8081
         description: Torrents
         icon: qbittorrent.png
 
 - 💼 Dev:
     - Forgejo:
-        href: http://git.home
+        href: http://localhost:3004
         description: Git self-hosted
         icon: gitea.png
     - BookStack:
-        href: http://wiki.home
+        href: http://localhost:6875
         description: Wiki interna
         icon: bookstack.png
 
 - ⚙️ Opcional:
     - n8n:
-        href: http://flows.home
+        href: http://localhost:5678
         description: Automatización
         icon: n8n.png
 
 - 📊 Ops:
     - Uptime Kuma:
-        href: http://status.home
+        href: http://localhost:3002
         description: Monitor servicios
         icon: uptime-kuma.png

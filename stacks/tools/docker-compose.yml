@@ -19,12 +19,12 @@ services:
       POSTGRES_PASSWORD: ${N8N_DB_PASSWORD}
       POSTGRES_DB: n8n
     volumes:
-      - /srv/data/n8n/db:/var/lib/postgresql/data
+      - ${HOMELAB_ROOT:-/srv}/data/n8n/db:/var/lib/postgresql/data
     networks:
       - homelab
 
   n8n:
-    image: n8nio/n8n:1.74.3
+    image: n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
     depends_on:
@@ -42,7 +42,7 @@ services:
       GENERIC_TIMEZONE: ${TZ:-America/Santiago}
       TZ: ${TZ:-America/Santiago}
     volumes:
-      - /srv/data/n8n/app:/home/node/.n8n
+      - ${HOMELAB_ROOT:-/srv}/data/n8n/app:/home/node/.n8n
     ports:
       - "127.0.0.1:5678:5678"
     networks:

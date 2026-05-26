@@ -19,7 +19,7 @@ services:
     container_name: forgejo-db
     restart: unless-stopped
     volumes:
-      - /srv/data/forgejo/db:/var/lib/postgresql/data
+      - ${HOMELAB_ROOT:-/srv}/data/forgejo/db:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: forgejo
       POSTGRES_PASSWORD: ${FORGEJO_DB_PASSWORD}
@@ -28,7 +28,7 @@ services:
       - homelab
 
   forgejo:
-    image: codeberg.org/forgejo/forgejo:9
+    image: codeberg.org/forgejo/forgejo:15
     container_name: forgejo
     restart: unless-stopped
     depends_on:
@@ -41,14 +41,14 @@ services:
       FORGEJO__database__NAME: forgejo
       FORGEJO__database__USER: forgejo
       FORGEJO__database__PASSWD: ${FORGEJO_DB_PASSWORD}
-      FORGEJO__server__DOMAIN: git.home
-      FORGEJO__server__ROOT_URL: http://git.home/
-      FORGEJO__server__SSH_DOMAIN: git.home
+      FORGEJO__server__DOMAIN: ${FORGEJO_DOMAIN:-git.home}
+      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-http://git.home/}
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_DOMAIN:-git.home}
       FORGEJO__server__SSH_PORT: 2222
       FORGEJO__security__SECRET_KEY: ${FORGEJO_SECRET_KEY}
       FORGEJO__security__INTERNAL_TOKEN: ${FORGEJO_INTERNAL_TOKEN}
     volumes:
-      - /srv/data/forgejo/data:/data
+      - ${HOMELAB_ROOT:-/srv}/data/forgejo/data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
@@ -67,7 +67,7 @@ services:
     container_name: bookstack-db
     restart: unless-stopped
     volumes:
-      - /srv/data/bookstack/db:/var/lib/mysql
+      - ${HOMELAB_ROOT:-/srv}/data/bookstack/db:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
       MYSQL_DATABASE: bookstack
@@ -77,7 +77,7 @@ services:
       - homelab
 
   bookstack:
-    image: linuxserver/bookstack:24.12.1
+    image: linuxserver/bookstack:latest
     container_name: bookstack
     restart: unless-stopped
     depends_on:
@@ -94,7 +94,7 @@ services:
       DB_USERNAME: bookstack      # Importante: USERNAME, no USER
       DB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
     volumes:
-      - /srv/data/bookstack/data:/config
+      - ${HOMELAB_ROOT:-/srv}/data/bookstack/data:/config
     ports:
       - "127.0.0.1:6875:80"
     networks:

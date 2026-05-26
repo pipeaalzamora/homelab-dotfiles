@@ -32,6 +32,7 @@ fi
 # Cargar variables de entorno
 # shellcheck source=/dev/null
 source "$ENV_FILE"
+HOMELAB_ROOT=${HOMELAB_ROOT:-/srv}
 
 # --- Menú de selección ----------------------------------------
 echo "Selecciona el día de instalación:"
@@ -112,13 +113,14 @@ copy_env_to_stacks() {
 }
 
 copy_configs_personal() {
-  cp "$SCRIPT_DIR/stacks/personal/nextcloud-nginx.conf" /srv/homelab/personal/nextcloud-nginx.conf
+  mkdir -p "$HOMELAB_ROOT/homelab/personal"
+  cp "$SCRIPT_DIR/stacks/personal/nextcloud-nginx.conf" "$HOMELAB_ROOT/homelab/personal/nextcloud-nginx.conf"
   echo "[Config] nextcloud-nginx.conf copiado."
 }
 
 copy_configs_homepage() {
-  mkdir -p /srv/data/homepage/config
-  cp "$SCRIPT_DIR/configs/homepage/"*.yaml /srv/data/homepage/config/
+  mkdir -p "$HOMELAB_ROOT/data/homepage/config"
+  cp "$SCRIPT_DIR/configs/homepage/"*.yaml "$HOMELAB_ROOT/data/homepage/config/"
   echo "[Config] Homepage configs copiados."
 }
 
