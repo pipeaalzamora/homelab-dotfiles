@@ -29,16 +29,13 @@ services:
       - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies:ro
       - ${HOMELAB_ROOT:-/srv}/media/series:/data/series:ro
       - ${HOMELAB_ROOT:-/srv}/media/music:/data/music:ro
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "44"   # video
+      - "990"  # render
     ports:
       - "8096:8096"
-    # Descomentar para transcoding por GPU NVIDIA (RTX 3060/4060)
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
     networks:
       - homelab
 
