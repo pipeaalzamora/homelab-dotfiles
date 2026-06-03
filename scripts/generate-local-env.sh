@@ -65,7 +65,7 @@ N8N_ENCRYPTION_KEY=$(rand_hex 24)
 N8N_BASIC_AUTH_USER=pipe
 N8N_BASIC_AUTH_PASSWORD=$(rand_b64 24)
 
-RESTIC_REPOSITORY=/home/pipeaalzamora/homelab/backups/restic-repo
+RESTIC_REPOSITORY=local:/mnt/restic-repo
 RESTIC_PASSWORD=$(rand_b64 32)
 B2_ACCOUNT_ID=
 B2_ACCOUNT_KEY=

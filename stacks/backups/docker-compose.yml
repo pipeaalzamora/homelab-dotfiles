@@ -17,7 +17,7 @@ services:
     hostname: homelab-pipe
     environment:
       TZ: ${TZ:-America/Santiago}
-      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-/mnt/restic-repo}
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-local:/mnt/restic-repo}
       RESTIC_PASSWORD: ${RESTIC_PASSWORD}
       BACKUP_CRON: "0 3 * * *"
       RESTIC_BACKUP_SOURCES: /backup
