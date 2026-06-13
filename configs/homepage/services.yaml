@@ -73,6 +73,10 @@
         href: http://localhost:5678
         description: Automatización
         icon: n8n.png
+    - Infisical:
+        href: http://localhost:8083
+        description: Gestión de secretos
+        icon: infisical.png
 
 - 📊 Ops:
     - Uptime Kuma:

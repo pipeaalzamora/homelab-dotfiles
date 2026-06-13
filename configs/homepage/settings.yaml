@@ -27,7 +27,7 @@ layout:
     columns: 2
   ⚙️ Opcional:
     style: row
-    columns: 1
+    columns: 2
   📊 Ops:
     style: row
     columns: 1

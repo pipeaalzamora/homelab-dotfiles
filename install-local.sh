@@ -50,9 +50,10 @@ echo "  3) Cloud local"
 echo "  4) Proyectos y wiki"
 echo "  5) Backups"
 echo "  6) Opcional: n8n"
+echo "  7) Opcional: Infisical (secretos)"
 echo "  a) Ruta recomendada local (1-4)"
 echo ""
-read -rp "Opción [1-6/a]: " OPCION
+read -rp "Opción [1-7/a]: " OPCION
 
 case "$OPCION" in
   1)
@@ -74,6 +75,9 @@ case "$OPCION" in
     ;;
   6)
     compose_up tools
+    ;;
+  7)
+    compose_up secrets
     ;;
   a|A)
     prepare_local

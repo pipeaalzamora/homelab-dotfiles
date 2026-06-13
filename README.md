@@ -28,6 +28,7 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
 │   ├── dev/        # Forgejo + BookStack
 │   ├── backups/    # Restic
 │   ├── tools/      # Opcional: n8n
+│   ├── secrets/    # Opcional: Infisical (gestión de secretos)
 │   ├── smarthome/  # Opcional futuro
 │   └── security/   # Opcional futuro si expones a internet
 ├── configs/
@@ -112,6 +113,7 @@ Nextcloud   http://IP_DEL_SERVIDOR:8082
 Homepage    http://IP_DEL_SERVIDOR:3001
 NPM         http://127.0.0.1:8181
 AdGuard UI  http://127.0.0.1:8080
+Infisical   http://127.0.0.1:8083
 ```
 
 Paneles administrativos quedan enlazados a `127.0.0.1` cuando es posible. Para acceder desde tu equipo usa un tunel SSH o configura Nginx Proxy Manager con DNS local.
@@ -180,9 +182,29 @@ No subas:
 
 Restic queda preparado para respaldar `HOMELAB_ROOT/data`, `HOMELAB_ROOT/cloud` y `HOMELAB_ROOT/homelab`. Para que el backup sea real, usa tambien un destino fuera del servidor: disco USB rotado, NAS, otro equipo o almacenamiento remoto cifrado.
 
-## Notas De Seguridad
+## Infisical (Gestión De Secretos)
 
-- No expongas servicios a internet al inicio.
+Stack opcional para centralizar API keys, credenciales y variables de entorno con cifrado. Vive en `stacks/secrets/` (Infisical + PostgreSQL + Redis) y la UI queda en `127.0.0.1:8083`.
+
+Las claves `INFISICAL_ENCRYPTION_KEY` y `INFISICAL_AUTH_SECRET` son obligatorias; sin ellas el contenedor no arranca. La `ENCRYPTION_KEY` cifra tus secretos, así que si la pierdes no podrás descifrarlos. Genéralas con:
+
+```bash
+openssl rand -hex 16      # INFISICAL_ENCRYPTION_KEY
+openssl rand -base64 32   # INFISICAL_AUTH_SECRET
+```
+
+Instalación:
+
+```bash
+./install-local.sh   # opción 7
+# o en servidor: sudo bash install.sh -> opción 7
+# o directo:
+docker compose --env-file env/.env -f stacks/secrets/docker-compose.yml up -d
+```
+
+En el primer arranque corre las migraciones de base de datos automáticamente; revisa `docker logs -f infisical` si la UI tarda en cargar. Luego abre `http://localhost:8083` y crea la cuenta admin.
+
+## Notas De Seguridad- No expongas servicios a internet al inicio.
 - Cambia credenciales por defecto en el primer login.
 - No uses `latest` para servicios criticos.
 - Revisa backups con pruebas de restore.

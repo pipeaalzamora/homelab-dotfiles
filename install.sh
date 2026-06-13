@@ -43,9 +43,10 @@ echo "  3) Cloud local (Nextcloud)"
 echo "  4) Proyectos y wiki local (Forgejo + BookStack)"
 echo "  5) Backups (Restic)"
 echo "  6) Opcional: automatización (n8n)"
+echo "  7) Opcional: gestión de secretos (Infisical)"
 echo "  a) Ruta recomendada (1-5)"
 echo ""
-read -rp "Opción [1-6/a]: " OPCION
+read -rp "Opción [1-7/a]: " OPCION
 
 compose_up() {
   local stack="$1"
@@ -103,6 +104,13 @@ run_tools() {
   echo "✅  n8n completado."
 }
 
+run_secrets() {
+  echo ""
+  echo "━━━ OPCIONAL: INFISICAL ━━━━━━━━━━━━━━━━━━━━━━"
+  compose_up secrets
+  echo "✅  Infisical completado."
+}
+
 copy_env_to_stacks() {
   for stack_dir in "$SCRIPT_DIR/stacks"/*/; do
     if [[ -f "$stack_dir/docker-compose.yml" ]]; then
@@ -131,6 +139,7 @@ case "$OPCION" in
   4) run_dev ;;
   5) run_backups ;;
   6) run_tools ;;
+  7) run_secrets ;;
   a|A)
     run_core
     run_media
