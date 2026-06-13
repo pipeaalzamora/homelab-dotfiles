@@ -51,9 +51,10 @@ echo "  4) Proyectos y wiki"
 echo "  5) Backups"
 echo "  6) Opcional: n8n"
 echo "  7) Opcional: Infisical (secretos)"
+echo "  8) Opcional: Productividad (Excalidraw + Stirling-PDF)"
 echo "  a) Ruta recomendada local (1-4)"
 echo ""
-read -rp "Opción [1-7/a]: " OPCION
+read -rp "Opción [1-8/a]: " OPCION
 
 case "$OPCION" in
   1)
@@ -78,6 +79,9 @@ case "$OPCION" in
     ;;
   7)
     compose_up secrets
+    ;;
+  8)
+    compose_up productivity
     ;;
   a|A)
     prepare_local

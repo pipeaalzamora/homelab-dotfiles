@@ -44,9 +44,10 @@ echo "  4) Proyectos y wiki local (Forgejo + BookStack)"
 echo "  5) Backups (Restic)"
 echo "  6) Opcional: automatización (n8n)"
 echo "  7) Opcional: gestión de secretos (Infisical)"
+echo "  8) Opcional: productividad (Excalidraw + Stirling-PDF)"
 echo "  a) Ruta recomendada (1-5)"
 echo ""
-read -rp "Opción [1-7/a]: " OPCION
+read -rp "Opción [1-8/a]: " OPCION
 
 compose_up() {
   local stack="$1"
@@ -111,6 +112,13 @@ run_secrets() {
   echo "✅  Infisical completado."
 }
 
+run_productivity() {
+  echo ""
+  echo "━━━ OPCIONAL: PRODUCTIVIDAD ━━━━━━━━━━━━━━━━━━"
+  compose_up productivity
+  echo "✅  Excalidraw + Stirling-PDF completado."
+}
+
 copy_env_to_stacks() {
   for stack_dir in "$SCRIPT_DIR/stacks"/*/; do
     if [[ -f "$stack_dir/docker-compose.yml" ]]; then
@@ -140,6 +148,7 @@ case "$OPCION" in
   5) run_backups ;;
   6) run_tools ;;
   7) run_secrets ;;
+  8) run_productivity ;;
   a|A)
     run_core
     run_media

@@ -1,0 +1,12 @@
+---
+# =============================================================
+# Homepage — Integración Docker
+# Muestra estado, CPU y RAM de cada contenedor en su tarjeta.
+# Usa docker-socket-proxy (servicio dockerproxy del stack core)
+# por TCP, en vez de montar el socket directo en Homepage.
+# Docs: https://gethomepage.dev/configs/docker/
+# =============================================================
+
+my-docker:
+  host: dockerproxy
+  port: 2375

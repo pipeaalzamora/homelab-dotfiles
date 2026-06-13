@@ -2,14 +2,24 @@
 # =============================================================
 # Homepage — Widgets superiores (info del sistema)
 # Copiar a /srv/data/homepage/config/widgets.yaml
+# Docs: https://gethomepage.dev/widgets/
 # =============================================================
 
+# Logo / saludo a la izquierda
+- greeting:
+    text_size: xl
+    text: Homelab — Pipe Edition
+
+# Recursos del host: CPU, RAM, disco y uptime
 - resources:
     label: Sistema
     cpu: true
     memory: true
     disk: /
+    uptime: true
+    expanded: true
 
+# Fecha y hora
 - datetime:
     text_size: xl
     format:
@@ -17,6 +27,17 @@
       dateStyle: short
       hourCycle: h23
 
+# Clima local (Open-Meteo, sin API key).
+# Ajusta latitude/longitude a tu ciudad. Ej: Santiago de Chile.
+- openmeteo:
+    label: Clima
+    latitude: -33.4489
+    longitude: -70.6693
+    timezone: America/Santiago
+    units: metric
+    cache: 5
+
+# Buscador
 - search:
     provider: duckduckgo
     target: _blank

@@ -10,6 +10,8 @@ favicon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/appl
 theme: dark
 color: slate
 
+headerStyle: clean
+hideVersion: true
 useEqualHeights: true
 
 layout:
@@ -26,6 +28,9 @@ layout:
     style: row
     columns: 2
   ⚙️ Opcional:
+    style: row
+    columns: 2
+  📝 Productividad:
     style: row
     columns: 2
   📊 Ops:

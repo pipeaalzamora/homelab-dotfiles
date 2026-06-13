@@ -2,6 +2,8 @@
 # =============================================================
 # Homepage — Servicios del homelab
 # Copiar a /srv/data/homepage/config/services.yaml
+# El campo server/container enlaza con la integración Docker
+# definida en docker.yaml (my-docker).
 # =============================================================
 
 - 🔒 Core:
@@ -9,77 +11,125 @@
         href: https://localhost:9443
         description: Gestión Docker
         icon: portainer.png
+        server: my-docker
+        container: portainer
     - Nginx Proxy Manager:
         href: http://localhost:8181
         description: Reverse proxy
         icon: nginx-proxy-manager.png
+        server: my-docker
+        container: npm
     - AdGuard Home:
         href: http://localhost:8080
         description: DNS bloqueador
         icon: adguard-home.png
+        server: my-docker
+        container: adguard
 
 - ☁️ Personal:
     - Nextcloud:
         href: http://localhost:8082
         description: Google Drive local
         icon: nextcloud.png
+        server: my-docker
+        container: nextcloud
 
 - 🎬 Media:
     - Jellyfin:
         href: http://localhost:8096
         description: Streaming personal
         icon: jellyfin.png
+        server: my-docker
+        container: jellyfin
     - Jellyseerr:
         href: http://localhost:5055
         description: Pedidos familiares
         icon: jellyseerr.png
+        server: my-docker
+        container: jellyseerr
     - Sonarr:
         href: http://localhost:8989
         description: Series
         icon: sonarr.png
+        server: my-docker
+        container: sonarr
     - Radarr:
         href: http://localhost:7878
         description: Películas
         icon: radarr.png
+        server: my-docker
+        container: radarr
     - Prowlarr:
         href: http://localhost:9696
         description: Indexadores
         icon: prowlarr.png
+        server: my-docker
+        container: prowlarr
     - FlareSolverr:
         href: http://localhost:8191
         description: Bypass Cloudflare para Prowlarr
         icon: flaresolverr.png
+        server: my-docker
+        container: flaresolverr
     - Bazarr:
         href: http://localhost:6767
         description: Subtítulos
         icon: bazarr.png
+        server: my-docker
+        container: bazarr
     - qBittorrent:
         href: http://localhost:8081
         description: Torrents
         icon: qbittorrent.png
+        server: my-docker
+        container: qbittorrent
 
 - 💼 Dev:
     - Forgejo:
         href: http://localhost:3004
         description: Git self-hosted
         icon: gitea.png
+        server: my-docker
+        container: forgejo
     - BookStack:
         href: http://localhost:6875
         description: Wiki interna
         icon: bookstack.png
+        server: my-docker
+        container: bookstack
 
 - ⚙️ Opcional:
     - n8n:
         href: http://localhost:5678
         description: Automatización
         icon: n8n.png
+        server: my-docker
+        container: n8n
     - Infisical:
         href: http://localhost:8083
         description: Gestión de secretos
         icon: infisical.png
+        server: my-docker
+        container: infisical
+
+- 📝 Productividad:
+    - Excalidraw:
+        href: http://localhost:8084
+        description: Pizarra y diagramas
+        icon: excalidraw.png
+        server: my-docker
+        container: excalidraw
+    - Stirling-PDF:
+        href: http://localhost:8085
+        description: Herramientas PDF
+        icon: stirling-pdf.png
+        server: my-docker
+        container: stirling-pdf
 
 - 📊 Ops:
     - Uptime Kuma:
         href: http://localhost:3002
         description: Monitor servicios
         icon: uptime-kuma.png
+        server: my-docker
+        container: uptime-kuma

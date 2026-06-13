@@ -18,7 +18,7 @@ echo "Root: $HOMELAB_ROOT"
 mkdir -p "$HOMELAB_ROOT"/{homelab,data,media,cloud,backups}
 
 # --- homelab — docker-compose.yml y configs -------------------
-mkdir -p "$HOMELAB_ROOT"/homelab/{core,personal,media,dev,tools,backups,smarthome,security,secrets}
+mkdir -p "$HOMELAB_ROOT"/homelab/{core,personal,media,dev,tools,backups,smarthome,security,secrets,productivity}
 
 # --- data — datos persistentes por servicio --------------------
 # Core
@@ -39,6 +39,9 @@ mkdir -p "$HOMELAB_ROOT"/data/n8n/{app,db}
 
 # Secrets (Infisical)
 mkdir -p "$HOMELAB_ROOT"/data/infisical/{db,redis}
+
+# Productivity (Excalidraw · Stirling-PDF)
+mkdir -p "$HOMELAB_ROOT"/data/stirling-pdf/{data,config,custom}
 
 # Smarthome
 mkdir -p "$HOMELAB_ROOT"/data/{homeassistant/config,ollama/models,openwebui}

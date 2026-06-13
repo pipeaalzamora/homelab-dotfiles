@@ -29,6 +29,7 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
 │   ├── backups/    # Restic
 │   ├── tools/      # Opcional: n8n
 │   ├── secrets/    # Opcional: Infisical (gestión de secretos)
+│   ├── productivity/ # Opcional: Excalidraw + Stirling-PDF
 │   ├── smarthome/  # Opcional futuro
 │   └── security/   # Opcional futuro si expones a internet
 ├── configs/
@@ -114,6 +115,8 @@ Homepage    http://IP_DEL_SERVIDOR:3001
 NPM         http://127.0.0.1:8181
 AdGuard UI  http://127.0.0.1:8080
 Infisical   http://127.0.0.1:8083
+Excalidraw  http://127.0.0.1:8084
+Stirling-PDF http://127.0.0.1:8085
 ```
 
 Paneles administrativos quedan enlazados a `127.0.0.1` cuando es posible. Para acceder desde tu equipo usa un tunel SSH o configura Nginx Proxy Manager con DNS local.
@@ -203,6 +206,24 @@ docker compose --env-file env/.env -f stacks/secrets/docker-compose.yml up -d
 ```
 
 En el primer arranque corre las migraciones de base de datos automáticamente; revisa `docker logs -f infisical` si la UI tarda en cargar. Luego abre `http://localhost:8083` y crea la cuenta admin.
+
+## Productividad (Excalidraw + Stirling-PDF)
+
+Stack opcional en `stacks/productivity/`:
+
+- **Excalidraw** (`127.0.0.1:8084`): pizarra para diagramas y bocetos a mano alzada. Es 100% client-side, no guarda nada en el servidor, así que no necesita base de datos ni volúmenes.
+- **Stirling-PDF** (`127.0.0.1:8085`): suite local para manipular PDF (unir, dividir, comprimir, OCR, convertir, firmar, etc.). Sus datos persisten en `data/stirling-pdf/`.
+
+Instalación:
+
+```bash
+./install-local.sh   # opción 8
+# o en servidor: sudo bash install.sh -> opción 8
+# o directo:
+docker compose --env-file env/.env -f stacks/productivity/docker-compose.yml up -d
+```
+
+Nota: las versiones recientes de Stirling-PDF arrancan con login activado. Credenciales por defecto `admin` / `stirling`; cámbialas en el primer acceso desde la configuración de cuenta.
 
 ## Notas De Seguridad- No expongas servicios a internet al inicio.
 - Cambia credenciales por defecto en el primer login.
