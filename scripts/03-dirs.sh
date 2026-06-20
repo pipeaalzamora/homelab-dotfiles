@@ -43,6 +43,9 @@ mkdir -p "$HOMELAB_ROOT"/data/infisical/{db,redis}
 # Productivity (Excalidraw · Stirling-PDF)
 mkdir -p "$HOMELAB_ROOT"/data/stirling-pdf/{data,config,custom}
 
+# Finance (Facto)
+mkdir -p "$HOMELAB_ROOT"/data/facto/{db,config}
+
 # Smarthome
 mkdir -p "$HOMELAB_ROOT"/data/{homeassistant/config,ollama/models,openwebui}
 

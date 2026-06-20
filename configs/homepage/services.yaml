@@ -112,6 +112,14 @@
         server: my-docker
         container: infisical
 
+- 💰 Finanzas:
+    - Facto:
+        href: http://localhost:8086
+        description: Contabilidad familiar
+        icon: https://raw.githubusercontent.com/nymanjens/facto/master/public/images/favicon.png
+        server: my-docker
+        container: facto
+
 - 📝 Productividad:
     - Excalidraw:
         href: http://localhost:8084
