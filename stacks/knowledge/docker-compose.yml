@@ -1,0 +1,210 @@
+# =============================================================
+# Stack: KNOWLEDGE
+# Piga · Docat · EveryDocs · DailyTxT · Wastebin · Iguana
+# Listas/notas, documentación versionada, documentos, diario, pastebin y tickets
+# =============================================================
+
+networks:
+  homelab:
+    external: true
+
+services:
+
+  # -----------------------------------------------------------
+  # MariaDB — base de datos de Piga
+  # -----------------------------------------------------------
+  piga-db:
+    image: mariadb:10.11
+    container_name: piga-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PIGA_DB_ROOT_PASSWORD:-piga}
+      MYSQL_DATABASE: piga
+      MYSQL_USER: piga
+      MYSQL_PASSWORD: ${PIGA_DB_PASSWORD:-piga}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/piga/db:/var/lib/mysql
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Piga — editor de listas/notas para power users
+  # UI: http://127.0.0.1:${PIGA_PORT:-8087}
+  # Primer arranque: bash stacks/knowledge/init-piga.sh
+  # -----------------------------------------------------------
+  piga:
+    image: nymanjens/piga:latest
+    container_name: piga
+    restart: unless-stopped
+    depends_on:
+      - piga-db
+    command: bin/server
+    environment:
+      APPLICATION_SECRET: ${PIGA_SECRET:-cambia_este_secreto_ahora_por_favor}
+      DATABASE_URL: "jdbc:mysql://piga-db:3306/piga?user=piga&password=${PIGA_DB_PASSWORD:-piga}"
+      TZ: ${TZ:-America/Santiago}
+      JAVA_TOOL_OPTIONS: "-Dfile.encoding=UTF-8 -Duser.language=es -Duser.country=CL"
+      LANG: es_CL.UTF-8
+    ports:
+      - "127.0.0.1:${PIGA_PORT:-8087}:9000"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Docat — hosting simple para documentación versionada
+  # UI: http://127.0.0.1:${DOCAT_PORT:-8089}
+  # -----------------------------------------------------------
+  docat:
+    image: ghcr.io/docat-org/docat:latest
+    container_name: docat
+    restart: unless-stopped
+    environment:
+      MAX_UPLOAD_SIZE: ${DOCAT_MAX_UPLOAD_SIZE:-100M}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/docat:/var/docat
+    ports:
+      - "127.0.0.1:${DOCAT_PORT:-8089}:80"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # EveryDocs — DMS simple para PDFs y documentos privados
+  # Web: http://127.0.0.1:${EVERYDOCS_WEB_PORT:-8090}
+  # API: http://127.0.0.1:${EVERYDOCS_CORE_PORT:-8091}
+  # -----------------------------------------------------------
+  everydocs-db:
+    image: mariadb:10.7.3
+    container_name: everydocs-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${EVERYDOCS_DB_ROOT_PASSWORD:-everydocs}
+      MYSQL_DATABASE: everydocs
+      MYSQL_USER: everydocs
+      MYSQL_PASSWORD: ${EVERYDOCS_DB_PASSWORD:-everydocs}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/everydocs/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "everydocs-db", "-u", "everydocs", "--password=${EVERYDOCS_DB_PASSWORD:-everydocs}"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - homelab
+
+  everydocs-core:
+    image: jonashellmann/everydocs:${EVERYDOCS_IMAGE_TAG:-1.5.0}
+    container_name: everydocs-core
+    restart: unless-stopped
+    depends_on:
+      everydocs-db:
+        condition: service_healthy
+    environment:
+      SECRET_KEY_BASE: ${EVERYDOCS_SECRET_KEY_BASE:-cambia_este_secreto_ahora_por_favor}
+      EVERYDOCS_DB_ADAPTER: mysql2
+      EVERYDOCS_DB_NAME: everydocs
+      EVERYDOCS_DB_USER: everydocs
+      EVERYDOCS_DB_PASSWORD: ${EVERYDOCS_DB_PASSWORD:-everydocs}
+      EVERYDOCS_DB_HOST: everydocs-db
+      EVERYDOCS_DB_PORT: 3306
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/everydocs/files:/var/everydocs-files
+    ports:
+      - "127.0.0.1:${EVERYDOCS_CORE_PORT:-8091}:5678"
+    networks:
+      - homelab
+
+  everydocs-web:
+    image: jonashellmann/everydocs-web:${EVERYDOCS_WEB_IMAGE_TAG:-1.5.0}
+    container_name: everydocs-web
+    restart: unless-stopped
+    depends_on:
+      - everydocs-core
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/everydocs/config/everydocs-web-config.js:/usr/local/apache2/htdocs/config.js:ro
+    ports:
+      - "127.0.0.1:${EVERYDOCS_WEB_PORT:-8090}:80"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # DailyTxT — diario personal cifrado
+  # UI: http://127.0.0.1:${DAILYTXT_PORT:-8092}
+  # -----------------------------------------------------------
+  dailytxt:
+    image: phitux/dailytxt:${DAILYTXT_IMAGE_TAG:-2.6.2}
+    container_name: dailytxt
+    restart: unless-stopped
+    environment:
+      SECRET_TOKEN: ${DAILYTXT_SECRET_TOKEN:-cambia_este_secreto_ahora_por_favor}
+      INDENT: ${DAILYTXT_INDENT:-4}
+      ALLOW_REGISTRATION: ${DAILYTXT_ALLOW_REGISTRATION:-true}
+      ADMIN_PASSWORD: ${DAILYTXT_ADMIN_PASSWORD:-changeme}
+      LOGOUT_AFTER_DAYS: ${DAILYTXT_LOGOUT_AFTER_DAYS:-40}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/dailytxt:/data
+    ports:
+      - "127.0.0.1:${DAILYTXT_PORT:-8092}:80"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Wastebin — pastebin local
+  # UI: http://127.0.0.1:${WASTEBIN_PORT:-8093}
+  # Nota: Wastebin no trae autenticación; exponer detrás de SSO/rate-limit si sale de localhost.
+  # -----------------------------------------------------------
+  wastebin:
+    image: quxfoo/wastebin:${WASTEBIN_IMAGE_TAG:-latest}
+    container_name: wastebin
+    restart: unless-stopped
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      WASTEBIN_ADDRESS_PORT: 0.0.0.0:8088
+      WASTEBIN_DATABASE_PATH: ${WASTEBIN_DATABASE_PATH:-/data/state.db}
+      WASTEBIN_BASE_URL: ${WASTEBIN_BASE_URL:-http://localhost:8093}
+      WASTEBIN_PASSWORD_SALT: ${WASTEBIN_PASSWORD_SALT:-cambia_este_salt_ahora_por_favor}
+      WASTEBIN_SIGNING_KEY: ${WASTEBIN_SIGNING_KEY:-cambia_esta_clave_por_una_clave_aleatoria_de_minimo_64_bytes_para_wastebin}
+      WASTEBIN_THEME: ${WASTEBIN_THEME:-ayu}
+      WASTEBIN_TITLE: ${WASTEBIN_TITLE:-Wastebin}
+      TZ: ${TZ:-America/Santiago}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/wastebin:/data
+    ports:
+      - "127.0.0.1:${WASTEBIN_PORT:-8093}:8088"
+    networks:
+      - homelab
+
+  # -----------------------------------------------------------
+  # Iguana — gestión de tickets/proyectos
+  # UI: http://127.0.0.1:${IGUANA_PORT:-8094}
+  # La imagen se construye desde el repo oficial porque el proyecto no publica una imagen Docker estable.
+  # -----------------------------------------------------------
+  iguana:
+    build:
+      context: "https://github.com/iguana-project/iguana.git#${IGUANA_GIT_REF:-master}"
+      args:
+        VARIANT: ${IGUANA_VARIANT:-production}
+        USE_NGINX: ${IGUANA_USE_NGINX:-true}
+    image: homelab/iguana:${IGUANA_IMAGE_TAG:-local}
+    container_name: iguana
+    restart: unless-stopped
+    entrypoint:
+      - /bin/sh
+      - -lc
+      - |
+        sed -i 's|system("python " + path.join(IGUANA_DIR, "make.py") + " migrations apply")|system("python " + path.join(IGUANA_DIR, "make.py") + " django migrate")|' /usr/local/bin/docker_entrypoint.py
+        exec /usr/local/bin/docker_entrypoint.py
+    environment:
+      TZ: ${TZ:-America/Santiago}
+      LANG: ${IGUANA_LANG:-es-cl}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    volumes:
+      - ${HOMELAB_ROOT:-/srv}/data/iguana:/files
+    ports:
+      - "127.0.0.1:${IGUANA_PORT:-8094}:8000"
+    networks:
+      - homelab

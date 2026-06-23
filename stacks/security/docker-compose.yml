@@ -3,8 +3,9 @@
 # Authelia (SSO) + Redis
 # Día 6 — Autenticación centralizada para servicios públicos
 #
-# ⚠️  Requisito: dominio propio con DNS apuntando al servidor
-#    Sin dominio, usar solo Tailscale y omitir este stack.
+# Local-first: el puerto queda publicado en 127.0.0.1.
+# Para usarlo con reverse proxy real, ajusta el dominio de sesión
+# en configs/authelia/configuration.yml.
 # =============================================================
 
 networks:
@@ -27,7 +28,7 @@ services:
   # -----------------------------------------------------------
   # Authelia — SSO + 2FA delante de servicios públicos
   # Puerto: 9091
-  # Config en: /srv/data/authelia/config/
+  # Config en: ${HOMELAB_ROOT}/data/authelia/config/
   # -----------------------------------------------------------
   authelia:
     image: authelia/authelia:latest
@@ -37,9 +38,12 @@ services:
       - authelia-redis
     environment:
       TZ: ${TZ:-America/Santiago}
+      AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET: ${AUTHELIA_JWT_SECRET:?set AUTHELIA_JWT_SECRET}
+      AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET:?set AUTHELIA_SESSION_SECRET}
+      AUTHELIA_STORAGE_ENCRYPTION_KEY: ${AUTHELIA_STORAGE_ENCRYPTION_KEY:?set AUTHELIA_STORAGE_ENCRYPTION_KEY}
     volumes:
-      - /srv/data/authelia/config:/config
+      - ${HOMELAB_ROOT:-/srv}/data/authelia/config:/config
     ports:
-      - "9091:9091"
+      - "127.0.0.1:${AUTHELIA_PORT:-9091}:9091"
     networks:
       - homelab

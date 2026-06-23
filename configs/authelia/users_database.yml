@@ -11,8 +11,9 @@
 users:
   pipe:
     displayname: "Pipe"
-    password: "$argon2id$v=19$m=65536,t=3,p=4$REEMPLAZAR_CON_HASH_GENERADO"
-    email: tu@email.com
+    # Contraseña inicial: changeme. Cambiar antes de exponer Authelia.
+    password: "$argon2id$v=19$m=65536,t=3,p=4$U7LY1SeSbT6zm81kBwrxOg$DVAyINQ/xwFgLJZuzIPaPbkJEJkdCp1l2nP/D9CVCSs"
+    email: pipe@homelab.local
     groups:
       - admins
       - dev

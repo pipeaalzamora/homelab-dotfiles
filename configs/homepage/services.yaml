@@ -120,6 +120,44 @@
         server: my-docker
         container: facto
 
+- 📚 Conocimiento:
+    - Piga:
+        href: http://localhost:8087
+        description: Listas y notas
+        icon: mdi-format-list-checks
+        server: my-docker
+        container: piga
+    - Docat:
+        href: http://localhost:8089
+        description: Documentación versionada
+        icon: mdi-bookshelf
+        server: my-docker
+        container: docat
+    - EveryDocs:
+        href: http://localhost:8090
+        description: Documentos PDF
+        icon: mdi-file-document-multiple
+        server: my-docker
+        container: everydocs-web
+    - DailyTxT:
+        href: http://localhost:8092
+        description: Diario cifrado
+        icon: mdi-book-edit
+        server: my-docker
+        container: dailytxt
+    - Wastebin:
+        href: http://localhost:8093
+        description: Pastebin local
+        icon: mdi-clipboard-text
+        server: my-docker
+        container: wastebin
+    - Iguana:
+        href: http://localhost:8094
+        description: Tickets y proyectos
+        icon: mdi-ticket-confirmation
+        server: my-docker
+        container: iguana
+
 - 📝 Productividad:
     - Excalidraw:
         href: http://localhost:8084
@@ -133,6 +171,14 @@
         icon: stirling-pdf.png
         server: my-docker
         container: stirling-pdf
+
+- 🛡️ Seguridad:
+    - Authelia:
+        href: http://localhost:9091
+        description: SSO y 2FA
+        icon: authelia.png
+        server: my-docker
+        container: authelia
 
 - 📊 Ops:
     - Uptime Kuma:

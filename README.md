@@ -10,6 +10,7 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
 2. Cloud local: Nextcloud para archivos familiares.
 3. Proyectos: Forgejo para repos propios y BookStack para wiki.
 4. Operación: Homepage, Uptime Kuma, AdGuard Home, Nginx Proxy Manager y Restic.
+5. Opcionales útiles: Facto, Piga, Docat, EveryDocs, DailyTxT, Wastebin, Iguana, n8n, Infisical, Excalidraw y Stirling-PDF.
 
 ## Estructura
 
@@ -30,9 +31,14 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
 │   ├── tools/      # Opcional: n8n
 │   ├── secrets/    # Opcional: Infisical (gestión de secretos)
 │   ├── productivity/ # Opcional: Excalidraw + Stirling-PDF
+│   ├── finance/    # Opcional: Facto
+│   ├── knowledge/  # Opcional: Piga + Docat + EveryDocs + DailyTxT + Wastebin + Iguana
 │   ├── smarthome/  # Opcional futuro
-│   └── security/   # Opcional futuro si expones a internet
+│   └── security/   # Opcional: Authelia
 ├── configs/
+│   ├── authelia/
+│   ├── everydocs/
+│   ├── facto/
 │   └── homepage/
 └── env/
     └── .env.example
@@ -101,7 +107,7 @@ Ruta recomendada en el instalador:
 5) Backups
 ```
 
-La opcion `a` ejecuta esa ruta recomendada. `n8n`, smarthome, IA local y seguridad publica quedan fuera del camino principal.
+La opcion `a` ejecuta esa ruta recomendada. `n8n`, Facto, Piga, Docat, EveryDocs, DailyTxT, Authelia, smarthome, IA local y seguridad publica quedan fuera del camino principal.
 
 ## Acceso Local
 
@@ -117,6 +123,15 @@ AdGuard UI  http://127.0.0.1:8080
 Infisical   http://127.0.0.1:8083
 Excalidraw  http://127.0.0.1:8084
 Stirling-PDF http://127.0.0.1:8085
+Facto       http://127.0.0.1:8086
+Piga        http://127.0.0.1:8087
+Docat       http://127.0.0.1:8089
+EveryDocs   http://127.0.0.1:8090
+EveryDocs API http://127.0.0.1:8091
+DailyTxT    http://127.0.0.1:8092
+Wastebin    http://127.0.0.1:8093
+Iguana      http://127.0.0.1:8094
+Authelia    http://127.0.0.1:9091
 ```
 
 Paneles administrativos quedan enlazados a `127.0.0.1` cuando es posible. Para acceder desde tu equipo usa un tunel SSH o configura Nginx Proxy Manager con DNS local.
@@ -146,6 +161,15 @@ torrent.home   -> IP_DEL_SERVIDOR
 portainer.home -> IP_DEL_SERVIDOR
 proxy.home     -> IP_DEL_SERVIDOR
 dns.home       -> IP_DEL_SERVIDOR
+finance.home   -> IP_DEL_SERVIDOR
+piga.home      -> IP_DEL_SERVIDOR
+docs.home      -> IP_DEL_SERVIDOR
+everydocs.home -> IP_DEL_SERVIDOR
+everydocs-api.home -> IP_DEL_SERVIDOR
+diario.home    -> IP_DEL_SERVIDOR
+paste.home     -> IP_DEL_SERVIDOR
+issues.home    -> IP_DEL_SERVIDOR
+auth.home      -> IP_DEL_SERVIDOR
 ```
 
 Luego Nginx Proxy Manager puede enrutar esos nombres hacia los contenedores internos:
@@ -165,6 +189,15 @@ status.home    -> uptime-kuma:3001
 portainer.home -> portainer:9443
 proxy.home     -> npm:81
 dns.home       -> adguard:80
+finance.home   -> facto:9000
+piga.home      -> piga:9000
+docs.home      -> docat:80
+everydocs.home -> everydocs-web:80
+everydocs-api.home -> everydocs-core:5678
+diario.home    -> dailytxt:80
+paste.home     -> wastebin:8088
+issues.home    -> iguana:8000
+auth.home      -> authelia:9091
 ```
 
 ## Backups
@@ -207,6 +240,70 @@ docker compose --env-file env/.env -f stacks/secrets/docker-compose.yml up -d
 
 En el primer arranque corre las migraciones de base de datos automáticamente; revisa `docker logs -f infisical` si la UI tarda en cargar. Luego abre `http://localhost:8083` y crea la cuenta admin.
 
+## Finanzas (Facto)
+
+Stack opcional en `stacks/finance/`. Facto queda configurado para español de Chile y pesos chilenos mediante:
+
+- Locale Java `es_CL`.
+- Zona horaria `America/Santiago`.
+- Configuración versionada en `configs/facto/accounting-config.yml` con `currency: CLP`.
+
+Instalación:
+
+```bash
+./install-local.sh   # opción 9
+# o en servidor: sudo bash install.sh -> opción 9
+# o primera vez directo:
+bash stacks/finance/init-facto.sh
+```
+
+Si la base ya existe, el instalador solo levanta el stack y preserva `data/facto/config/accounting-config.yml`. Para recrear la base de datos explícitamente usa `bash stacks/finance/init-facto.sh --force`.
+
+## Conocimiento (Piga + Docat + EveryDocs + DailyTxT + Wastebin + Iguana)
+
+Stack opcional en `stacks/knowledge/`:
+
+- **Piga** (`127.0.0.1:8087`): editor de listas/notas con atajos de productividad. Requiere MariaDB y un primer arranque de inicialización.
+- **Docat** (`127.0.0.1:8089`): hosting local para documentación estática versionada. Persiste en `data/docat/`.
+- **EveryDocs** (`127.0.0.1:8090`, API `127.0.0.1:8091`): gestor simple de documentos PDF. Persiste archivos en `data/everydocs/files/` y MariaDB en `data/everydocs/db/`.
+- **DailyTxT** (`127.0.0.1:8092`): diario web cifrado. Persiste entradas y adjuntos en `data/dailytxt/`.
+- **Wastebin** (`127.0.0.1:8093`): pastebin local con SQLite en `data/wastebin/state.db`. No trae autenticación propia; si lo publicas, ponlo detrás de Authelia/NPM con rate-limit.
+- **Iguana** (`127.0.0.1:8094`): gestión de tickets y proyectos. La imagen se construye localmente desde `https://github.com/iguana-project/iguana` porque el proyecto no publica una imagen Docker estable.
+
+Instalación:
+
+```bash
+./install-local.sh   # opción 10
+# o en servidor: sudo bash install.sh -> opción 10
+# o primera vez directo:
+bash stacks/knowledge/init-piga.sh
+```
+
+Piga crea el usuario `admin` con contraseña inicial `changeme`; cámbiala en `http://localhost:8087/app/useradministration`. Si la base ya existe, el instalador no ejecuta `dropAndCreateNewDb`; para recrearla explícitamente usa `bash stacks/knowledge/init-piga.sh --force`.
+
+DailyTxT arranca con registro habilitado (`DAILYTXT_ALLOW_REGISTRATION=true`) para crear el primer usuario. Deshabilítalo después desde `env/.env` o desde el panel admin. La contraseña admin inicial se controla con `DAILYTXT_ADMIN_PASSWORD`.
+
+EveryDocs queda pinneado a `jonashellmann/everydocs:1.5.0` y `jonashellmann/everydocs-web:1.5.0`. No uses `latest` ahí sin probar migraciones: al 20 de junio de 2026, `core:latest` y `web:latest` no apuntan a versiones equivalentes y el core más nuevo falla creando la base inicial.
+
+Wastebin necesita una clave de firma de al menos 64 bytes (`WASTEBIN_SIGNING_KEY`). `scripts/generate-local-env.sh` la genera automáticamente; si creas el `.env` a mano usa `openssl rand -base64 64`.
+
+Iguana se construye con `IGUANA_USE_NGINX=true` para que el Nginx embebido exponga el puerto `8000`. Crea `data/iguana/settings.json` en el primer arranque y genera `SECRET_KEY`, zona horaria e idioma desde el entorno. Si lo expones fuera de localhost, revisa `HOST` y `ALLOWED_HOSTS` en ese archivo.
+
+## Seguridad SSO (Authelia)
+
+Stack opcional en `stacks/security/`. La configuración vive en `configs/authelia/` y se copia a `data/authelia/config/`.
+
+Instalación:
+
+```bash
+./install-local.sh   # opción 11
+# o en servidor: sudo bash install.sh -> opción 11
+# o directo:
+docker compose --env-file env/.env -f stacks/security/docker-compose.yml up -d
+```
+
+Authelia queda escuchando solo en `127.0.0.1:9091`. El usuario inicial es `pipe` con contraseña `changeme`; cámbiala antes de exponerlo detrás de Nginx Proxy Manager. Para usar dominios reales, ajusta `configs/authelia/configuration.yml`, especialmente `session.cookies[].domain`, `authelia_url`, `default_redirection_url` y las reglas de `access_control`.
+
 ## Productividad (Excalidraw + Stirling-PDF)
 
 Stack opcional en `stacks/productivity/`:
@@ -225,7 +322,9 @@ docker compose --env-file env/.env -f stacks/productivity/docker-compose.yml up 
 
 Nota: las versiones recientes de Stirling-PDF arrancan con login activado. Credenciales por defecto `admin` / `stirling`; cámbialas en el primer acceso desde la configuración de cuenta.
 
-## Notas De Seguridad- No expongas servicios a internet al inicio.
+## Notas De Seguridad
+
+- No expongas servicios a internet al inicio.
 - Cambia credenciales por defecto en el primer login.
 - No uses `latest` para servicios criticos.
 - Revisa backups con pruebas de restore.

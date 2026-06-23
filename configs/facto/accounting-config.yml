@@ -1,0 +1,228 @@
+!!app.models.accounting.config.Parsable$Config
+# =============================================================
+# Facto — Configuración para pesos chilenos (CLP)
+# El peso chileno no usa decimales desde 1996.
+# Ajusta cuentas, categorías y reservorios a tu situación real.
+# =============================================================
+
+categories:
+  - &catViveres
+      code: VIVERES
+      name: "Víveres"
+      helpText: "Supermercado, verduras, .."
+  - &catRestaurant
+      code: RESTAURANT
+      name: "Restorán / café"
+      helpText: "Salidas a comer o tomar café"
+  - &catTransporte
+      code: TRANSPORTE
+      name: "Transporte"
+      helpText: "Bencina, metro, micro, Uber, peajes"
+  - &catServicios
+      code: SERVICIOS
+      name: "Servicios básicos"
+      helpText: "Luz, agua, gas, internet, teléfono"
+  - &catSalud
+      code: SALUD
+      name: "Salud"
+      helpText: "Medicamentos, médico, dentista, isapre/fonasa"
+  - &catOcio
+      code: OCIO
+      name: "Ocio"
+      helpText: "Streaming, cine, videojuegos, salidas"
+  - &catRopa
+      code: ROPA
+      name: "Ropa y calzado"
+      helpText: ""
+  - &catEduca
+      code: EDUCA
+      name: "Educación"
+      helpText: "Cursos, libros, universidad"
+  - &catHogar
+      code: HOGAR
+      name: "Hogar"
+      helpText: "Muebles, electrónica, arreglos"
+  - &catAhorro
+      code: AHORRO
+      name: "Ahorro / inversión"
+      helpText: "AFP voluntaria, depósito a plazo, acciones"
+  - &catIngreso
+      code: INGRESO
+      name: "Ingreso"
+      helpText: "Sueldo, honorarios, bonos"
+  - &catImpuesto
+      code: IMPUESTO
+      name: "Impuestos"
+      helpText: "SII, patente, contribuciones"
+  - &catContable
+      code: CONTABLE
+      name: "Contable"
+      helpText: "Flujos no reales (traspasos internos)"
+  - &catAporte
+      code: APORTE
+      name: "Aportes"
+      helpText: "Recargas a la cuenta común"
+
+accounts:
+  - &accountComun
+      code: Comun
+      longName: Cuenta Común
+      shorterName: Común
+      veryShortName: C.
+      defaultElectronicReservoirCode: TARJETA_COMUN
+      categories:
+        - *catViveres
+        - *catRestaurant
+        - *catTransporte
+        - *catServicios
+        - *catSalud
+        - *catOcio
+        - *catRopa
+        - *catEduca
+        - *catHogar
+        - *catAhorro
+        - *catImpuesto
+        - *catAporte
+        - *catContable
+      summaryTotalRows:
+        - rowTitleHtml: <b>Total</b>
+          categoriesToIgnore: [*catContable]
+        - rowTitleHtml: <b>Total</b> <small>(sin aportes)</small>
+          categoriesToIgnore: [*catContable, *catAporte]
+
+  - &accountPipe
+      code: Pipe
+      longName: Pipe
+      shorterName: Pipe
+      veryShortName: P.
+      userLoginName: admin
+      defaultCashReservoirCode: EFECTIVO_PIPE
+      defaultElectronicReservoirCode: TARJETA_PIPE
+      categories:
+        - *catViveres
+        - *catRestaurant
+        - *catTransporte
+        - *catServicios
+        - *catSalud
+        - *catOcio
+        - *catRopa
+        - *catEduca
+        - *catHogar
+        - *catAhorro
+        - *catIngreso
+        - *catImpuesto
+        - *catAporte
+        - *catContable
+      summaryTotalRows:
+        - rowTitleHtml: <b>Total</b>
+          categoriesToIgnore: [*catContable]
+        - rowTitleHtml: <b>Total</b> <small>(sin ahorro)</small>
+          categoriesToIgnore: [*catContable, *catAhorro]
+
+moneyReservoirs:
+    - &reservoirEfectivoComun
+        code: EFECTIVO_COMUN
+        name: Efectivo común
+        owner: *accountComun
+        currency: CLP
+
+    - &reservoirTarjetaComun
+        code: TARJETA_COMUN
+        name: Tarjeta cuenta común
+        owner: *accountComun
+        currency: CLP
+
+    - &reservoirEfectivoPipe
+        code: EFECTIVO_PIPE
+        name: Efectivo Pipe
+        owner: *accountPipe
+        currency: CLP
+
+    - &reservoirTarjetaPipe
+        code: TARJETA_PIPE
+        name: Tarjeta Pipe
+        owner: *accountPipe
+        currency: CLP
+
+    - &reservoirAhorroPipe
+        code: AHORRO_PIPE
+        name: Cuenta de ahorro Pipe
+        shorterName: Ahorro Pipe
+        owner: *accountPipe
+        currency: CLP
+        hidden: true
+
+templates:
+  - code: retiro-efectivo
+    name: Retiro de efectivo
+    placement: [CASH_FLOW_VIEW]
+    zeroSum: true
+    icon: fa fa-credit-card fa-fw
+    transactions:
+      - beneficiaryCode: ${account.code}
+        moneyReservoirCode: ${account.defaultElectronicReservoir.code}
+        categoryCode: CONTABLE
+        description: Retiro efectivo
+        flowAsFloat: -50000
+      - beneficiaryCode: ${account.code}
+        moneyReservoirCode: ${account.defaultCashReservoir.code}
+        categoryCode: CONTABLE
+        description: Retiro efectivo
+        flowAsFloat: 50000
+
+  - code: aporte-comun
+    name: Aporte a cuenta común
+    placement: [ENDOWMENTS_VIEW]
+    zeroSum: true
+    icon: icon-crown
+    transactions:
+      - beneficiaryCode: Comun
+        moneyReservoirCode: ""
+        categoryCode: APORTE
+        description: Aporte mensual
+      - beneficiaryCode: ${account.code}
+        moneyReservoirCode: ""
+        categoryCode: APORTE
+        description: Aporte mensual
+
+  - code: supermercado
+    name: Supermercado
+    placement: [TEMPLATE_LIST]
+    icon: icon-food
+    transactions:
+      - beneficiaryCode: Comun
+        moneyReservoirCode: ${account.defaultElectronicReservoir.code}
+        categoryCode: VIVERES
+        description: Supermercado
+        flowAsFloat: -30000
+
+  - code: sueldo
+    name: Sueldo
+    placement: [TEMPLATE_LIST]
+    icon: fa fa-suitcase fa-fw
+    transactions:
+      - beneficiaryCode: Pipe
+        moneyReservoirCode: TARJETA_PIPE
+        categoryCode: INGRESO
+        description: Sueldo
+        flowAsFloat: 1000000
+
+predefinedCharts:
+  - name: "Gastos por categoría"
+    chartSpec:
+      lines:
+        - name: "Víveres"
+          query: "category:VIVERES"
+        - name: "Transporte"
+          query: "category:TRANSPORTE"
+        - name: "Ocio"
+          query: "category:OCIO"
+
+constants:
+  commonAccount: *accountComun
+  accountingCategory: *catContable
+  endowmentCategory: *catAporte
+  liquidationDescription: Liquidación
+  zoneId: "America/Santiago"
+  supportInflationCorrections: false
+  firstMonthOfYear: January

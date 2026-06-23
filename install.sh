@@ -45,9 +45,12 @@ echo "  5) Backups (Restic)"
 echo "  6) Opcional: automatización (n8n)"
 echo "  7) Opcional: gestión de secretos (Infisical)"
 echo "  8) Opcional: productividad (Excalidraw + Stirling-PDF)"
+echo "  9) Opcional: finanzas (Facto)"
+echo "  10) Opcional: conocimiento y docs (Piga + Docat + EveryDocs + DailyTxT + Wastebin + Iguana)"
+echo "  11) Opcional: seguridad SSO (Authelia)"
 echo "  a) Ruta recomendada (1-5)"
 echo ""
-read -rp "Opción [1-8/a]: " OPCION
+read -rp "Opción [1-11/a]: " OPCION
 
 compose_up() {
   local stack="$1"
@@ -61,7 +64,6 @@ run_core() {
   bash "$SCRIPT_DIR/scripts/02-docker.sh"
   bash "$SCRIPT_DIR/scripts/03-dirs.sh"
   bash "$SCRIPT_DIR/scripts/04-tailscale.sh"
-  copy_env_to_stacks
   copy_configs_homepage
   echo ""
   echo "Levantando stack core..."
@@ -119,13 +121,36 @@ run_productivity() {
   echo "✅  Excalidraw + Stirling-PDF completado."
 }
 
-copy_env_to_stacks() {
-  for stack_dir in "$SCRIPT_DIR/stacks"/*/; do
-    if [[ -f "$stack_dir/docker-compose.yml" ]]; then
-      cp "$ENV_FILE" "$stack_dir/.env"
-    fi
-  done
-  echo "[.env] Copiado a todos los stacks."
+run_finance() {
+  echo ""
+  echo "━━━ OPCIONAL: FINANZAS ━━━━━━━━━━━━━━━━━━━━━━━"
+  copy_configs_finance
+  if [[ -d "$HOMELAB_ROOT/data/facto/db/mysql" ]]; then
+    compose_up finance
+  else
+    bash "$SCRIPT_DIR/stacks/finance/init-facto.sh"
+  fi
+  echo "✅  Facto completado."
+}
+
+run_knowledge() {
+  echo ""
+  echo "━━━ OPCIONAL: CONOCIMIENTO Y DOCS ━━━━━━━━━━━━"
+  copy_configs_knowledge
+  if [[ -d "$HOMELAB_ROOT/data/piga/db/mysql" ]]; then
+    compose_up knowledge
+  else
+    bash "$SCRIPT_DIR/stacks/knowledge/init-piga.sh"
+  fi
+  echo "✅  Piga + Docat + EveryDocs + DailyTxT + Wastebin + Iguana completado."
+}
+
+run_security() {
+  echo ""
+  echo "━━━ OPCIONAL: SEGURIDAD SSO ━━━━━━━━━━━━━━━━━━"
+  copy_configs_authelia
+  compose_up security
+  echo "✅  Authelia completado."
 }
 
 copy_configs_personal() {
@@ -140,6 +165,33 @@ copy_configs_homepage() {
   echo "[Config] Homepage configs copiados."
 }
 
+copy_configs_finance() {
+  mkdir -p "$HOMELAB_ROOT/data/facto/config"
+  if [[ ! -f "$HOMELAB_ROOT/data/facto/config/accounting-config.yml" ]]; then
+    cp "$SCRIPT_DIR/configs/facto/accounting-config.yml" "$HOMELAB_ROOT/data/facto/config/accounting-config.yml"
+    echo "[Config] Facto CLP copiado."
+  else
+    echo "[Config] Facto CLP existente preservado."
+  fi
+}
+
+copy_configs_knowledge() {
+  mkdir -p "$HOMELAB_ROOT/data/piga/db" "$HOMELAB_ROOT/data/docat" "$HOMELAB_ROOT/data/everydocs/config" "$HOMELAB_ROOT/data/everydocs/db" "$HOMELAB_ROOT/data/everydocs/files" "$HOMELAB_ROOT/data/dailytxt" "$HOMELAB_ROOT/data/wastebin" "$HOMELAB_ROOT/data/iguana"
+  cp "$SCRIPT_DIR/configs/everydocs/everydocs-web-config.js" "$HOMELAB_ROOT/data/everydocs/config/everydocs-web-config.js"
+  echo "[Config] EveryDocs Web copiado."
+}
+
+copy_configs_authelia() {
+  mkdir -p "$HOMELAB_ROOT/data/authelia/config"
+  cp "$SCRIPT_DIR/configs/authelia/configuration.yml" "$HOMELAB_ROOT/data/authelia/config/configuration.yml"
+  if [[ ! -f "$HOMELAB_ROOT/data/authelia/config/users_database.yml" ]]; then
+    cp "$SCRIPT_DIR/configs/authelia/users_database.yml" "$HOMELAB_ROOT/data/authelia/config/users_database.yml"
+    echo "[Config] Authelia users_database.yml copiado."
+  else
+    echo "[Config] Authelia users_database.yml existente preservado."
+  fi
+}
+
 case "$OPCION" in
   1) run_core ;;
   2) run_media ;;
@@ -149,6 +201,9 @@ case "$OPCION" in
   6) run_tools ;;
   7) run_secrets ;;
   8) run_productivity ;;
+  9) run_finance ;;
+  10) run_knowledge ;;
+  11) run_security ;;
   a|A)
     run_core
     run_media

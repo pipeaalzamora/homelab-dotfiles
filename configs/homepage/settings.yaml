@@ -30,9 +30,18 @@ layout:
   ⚙️ Opcional:
     style: row
     columns: 2
+  💰 Finanzas:
+    style: row
+    columns: 1
+  📚 Conocimiento:
+    style: row
+    columns: 4
   📝 Productividad:
     style: row
     columns: 2
+  🛡️ Seguridad:
+    style: row
+    columns: 1
   📊 Ops:
     style: row
     columns: 1

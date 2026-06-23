@@ -2,7 +2,7 @@
 # Stack: FINANCE
 # Facto — herramienta de contabilidad familiar
 # https://github.com/nymanjens/facto
-# Puerto UI: 127.0.0.1:8086
+# Puerto UI: 127.0.0.1:${FACTO_PORT:-8086}
 #
 # PRIMERA VEZ — ejecutar antes de levantar el stack:
 #   cd homelab-dotfiles && bash stacks/finance/init-facto.sh
@@ -33,7 +33,7 @@ services:
 
   # -----------------------------------------------------------
   # Facto — contabilidad familiar en pesos chilenos
-  # UI: http://127.0.0.1:8086  usuario: admin / changeme
+  # UI: http://127.0.0.1:${FACTO_PORT:-8086}  usuario: admin / changeme
   # Cambiar contraseña en /app/useradministration tras el 1er login
   # -----------------------------------------------------------
   facto:
@@ -47,10 +47,13 @@ services:
       APPLICATION_SECRET: ${FACTO_SECRET:-cambia_este_secreto_ahora_por_favor}
       DATABASE_URL: "jdbc:mysql://facto-db:3306/facto?user=facto&password=${FACTO_DB_PASSWORD:-facto}&disableMariaDbDriver"
       TZ: ${TZ:-America/Santiago}
+      # Locale chileno y lectura UTF-8 para textos con acentos.
+      JAVA_TOOL_OPTIONS: "-Dfile.encoding=UTF-8 -Duser.language=es -Duser.country=CL"
+      LANG: es_CL.UTF-8
     volumes:
       # Config personalizada con pesos chilenos montada sobre la del contenedor
       - ${HOMELAB_ROOT:-/srv}/data/facto/config/accounting-config.yml:/app/conf/accounting-config.yml:ro
     ports:
-      - "127.0.0.1:8086:9000"
+      - "127.0.0.1:${FACTO_PORT:-8086}:9000"
     networks:
       - homelab

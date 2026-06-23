@@ -1,21 +1,23 @@
 ---
 # =============================================================
-# Authelia — Configuración principal
-# Copiar a /srv/data/authelia/config/configuration.yml
+# Authelia — Configuración principal local-first
+# Copiar a ${HOMELAB_ROOT}/data/authelia/config/configuration.yml
+#
+# Los secretos se inyectan desde env/.env mediante variables
+# AUTHELIA_* en stacks/security/docker-compose.yml.
 # =============================================================
 
 theme: dark
-jwt_secret: "{{ AUTHELIA_JWT_SECRET }}"      # Reemplazar con valor de .env
-
-default_redirection_url: https://tudominio.com
 
 server:
-  host: 0.0.0.0
-  port: 9091
-  path: ""
+  address: tcp://0.0.0.0:9091/
 
 log:
   level: warn
+
+identity_validation:
+  reset_password:
+    jwt_lifespan: 5 minutes
 
 totp:
   issuer: homelab-pipe
@@ -36,33 +38,21 @@ authentication_backend:
 access_control:
   default_policy: deny
   rules:
-    # Servicios públicos con 2FA
-    - domain: "cloud.tudominio.com"
-      policy: two_factor
-    - domain: "photos.tudominio.com"
-      policy: two_factor
-    - domain: "vault.tudominio.com"
-      policy: two_factor
-    - domain: "docs.tudominio.com"
-      policy: two_factor
-    - domain: "media.tudominio.com"
-      policy: one_factor
-    # Servicios de admin — solo Tailscale (no deberían llegar aquí)
-    - domain: "git.tudominio.com"
-      policy: two_factor
-    - domain: "wiki.tudominio.com"
-      policy: two_factor
-    - domain: "flows.tudominio.com"
-      policy: two_factor
-    - domain: "ci.tudominio.com"
+    - domain:
+        - "*.homelab.local"
+        - "homelab.local"
       policy: two_factor
 
 session:
   name: authelia_session
-  secret: "{{ AUTHELIA_SESSION_SECRET }}"    # Reemplazar con valor de .env
+  same_site: lax
   expiration: 1h
   inactivity: 5m
-  domain: tudominio.com
+  remember_me: 1M
+  cookies:
+    - domain: homelab.local
+      authelia_url: https://auth.homelab.local
+      default_redirection_url: https://homepage.homelab.local
   redis:
     host: authelia-redis
     port: 6379
@@ -73,20 +63,9 @@ regulation:
   ban_time: 10m
 
 storage:
-  encryption_key: "{{ AUTHELIA_STORAGE_ENCRYPTION_KEY }}"  # Reemplazar con valor de .env
   local:
     path: /config/db.sqlite3
 
 notifier:
-  disable_startup_check: false
-  # Opción 1: archivo de log (sin SMTP)
   filesystem:
     filename: /config/notification.txt
-  # Opción 2: SMTP real (descomentar y configurar)
-  # smtp:
-  #   host: smtp.gmail.com
-  #   port: 587
-  #   username: tu@gmail.com
-  #   password: APP_PASSWORD
-  #   sender: "Homelab <tu@gmail.com>"
-  #   subject: "[Homelab] {title}"

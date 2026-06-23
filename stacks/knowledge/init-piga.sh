@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================
-# Facto — Inicialización de base de datos y usuario admin
+# Piga — Inicialización de base de datos y usuario admin
 # Ejecutar solo en el primer arranque. Usa --force si quieres
 # recrear la base de datos de forma explícita.
 #
 # Uso:
 #   cd homelab-dotfiles
-#   bash stacks/finance/init-facto.sh
+#   bash stacks/knowledge/init-piga.sh
 # =============================================================
 set -euo pipefail
 
@@ -28,21 +28,11 @@ if [[ "${1:-}" == "--force" ]]; then
   FORCE=true
 fi
 
-DB_DIR="$HOMELAB_ROOT/data/facto/db"
-CONFIG_SOURCE="$SCRIPT_DIR/../../configs/facto/accounting-config.yml"
-CONFIG_TARGET="$HOMELAB_ROOT/data/facto/config/accounting-config.yml"
-
-mkdir -p "$DB_DIR" "$(dirname "$CONFIG_TARGET")"
-
-if [[ ! -f "$CONFIG_TARGET" ]]; then
-  cp "$CONFIG_SOURCE" "$CONFIG_TARGET"
-  echo "==> Configuración CLP copiada a $CONFIG_TARGET"
-else
-  echo "==> Configuración existente preservada en $CONFIG_TARGET"
-fi
+DB_DIR="$HOMELAB_ROOT/data/piga/db"
+mkdir -p "$DB_DIR"
 
 if [[ -d "$DB_DIR/mysql" && "$FORCE" != true ]]; then
-  echo "La base de datos de Facto ya parece inicializada en $DB_DIR."
+  echo "La base de datos de Piga ya parece inicializada en $DB_DIR."
   echo "No se ejecuta drop/create para evitar pérdida de datos."
   echo "Usa --force solo si quieres recrearla."
   exit 1
@@ -50,24 +40,26 @@ fi
 
 COMPOSE=(docker compose --env-file "$ENV_FILE" -f "$SCRIPT_DIR/docker-compose.yml")
 
-echo "==> Levantando base de datos (facto-db)..."
-"${COMPOSE[@]}" up -d facto-db
+echo "==> Levantando base de datos (piga-db)..."
+"${COMPOSE[@]}" up -d piga-db
 
 echo "==> Esperando a que MariaDB esté lista (20s)..."
 sleep 20
 
 echo "==> Creando tablas..."
-"${COMPOSE[@]}" run --rm facto sleep 5
-"${COMPOSE[@]}" run --rm facto bin/server -DdropAndCreateNewDb
+"${COMPOSE[@]}" run --rm piga sleep 5
+"${COMPOSE[@]}" run --rm piga bin/server -DdropAndCreateNewDb
 
 echo "==> Creando usuario admin (password: changeme — cámbialo en la UI)..."
-"${COMPOSE[@]}" run --rm facto bin/server -DcreateAdminUser
+"${COMPOSE[@]}" run --rm piga bin/server -DcreateAdminUser
 
 echo ""
-echo "==> Levantando Facto completo..."
+echo "==> Levantando Piga + Docat..."
 "${COMPOSE[@]}" up -d
 
 echo ""
-echo "Facto listo en http://127.0.0.1:${FACTO_PORT:-8086}"
+echo "Piga listo en http://127.0.0.1:${PIGA_PORT:-8087}"
 echo "Usuario: admin  |  Contraseña: changeme"
-echo "Cambia la contraseña en: http://127.0.0.1:${FACTO_PORT:-8086}/app/useradministration"
+echo "Cambia la contraseña en: http://127.0.0.1:${PIGA_PORT:-8087}/app/useradministration"
+echo ""
+echo "Docat listo en http://127.0.0.1:${DOCAT_PORT:-8089}"
