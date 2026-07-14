@@ -171,6 +171,12 @@
         icon: stirling-pdf.png
         server: my-docker
         container: stirling-pdf
+    - AppFlowy:
+        href: http://192.168.1.7:8095
+        description: Notas y docs (tipo Notion)
+        icon: appflowy.png
+        server: my-docker
+        container: appflowy-appflowy_web-1
 
 - 🛡️ Seguridad:
     - Authelia:
