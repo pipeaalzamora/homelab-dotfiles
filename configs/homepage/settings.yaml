@@ -17,31 +17,28 @@ useEqualHeights: true
 layout:
   🔒 Core:
     style: row
-    columns: 3
+    columns: 2
   ☁️ Personal:
     style: row
     columns: 1
   🎬 Media:
     style: row
-    columns: 7
+    columns: 8
   💼 Dev:
     style: row
     columns: 2
-  ⚙️ Opcional:
+  🔐 Secretos:
     style: row
-    columns: 2
+    columns: 1
   💰 Finanzas:
     style: row
     columns: 1
   📚 Conocimiento:
     style: row
-    columns: 4
+    columns: 6
   📝 Productividad:
     style: row
-    columns: 2
+    columns: 3
   🛡️ Seguridad:
-    style: row
-    columns: 1
-  📊 Ops:
     style: row
     columns: 1

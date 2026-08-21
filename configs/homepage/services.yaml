@@ -13,12 +13,6 @@
         icon: portainer.png
         server: my-docker
         container: portainer
-    - Nginx Proxy Manager:
-        href: http://localhost:8181
-        description: Reverse proxy
-        icon: nginx-proxy-manager.png
-        server: my-docker
-        container: npm
     - AdGuard Home:
         href: http://localhost:8080
         description: DNS bloqueador
@@ -98,13 +92,7 @@
         server: my-docker
         container: bookstack
 
-- ⚙️ Opcional:
-    - n8n:
-        href: http://localhost:5678
-        description: Automatización
-        icon: n8n.png
-        server: my-docker
-        container: n8n
+- 🔐 Secretos:
     - Infisical:
         href: http://localhost:8083
         description: Gestión de secretos
@@ -172,7 +160,7 @@
         server: my-docker
         container: stirling-pdf
     - AppFlowy:
-        href: http://192.168.1.7:8095
+        href: http://localhost:8095
         description: Notas y docs (tipo Notion)
         icon: appflowy.png
         server: my-docker
@@ -185,11 +173,3 @@
         icon: authelia.png
         server: my-docker
         container: authelia
-
-- 📊 Ops:
-    - Uptime Kuma:
-        href: http://localhost:3002
-        description: Monitor servicios
-        icon: uptime-kuma.png
-        server: my-docker
-        container: uptime-kuma

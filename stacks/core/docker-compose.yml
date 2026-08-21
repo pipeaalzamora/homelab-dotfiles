@@ -1,6 +1,6 @@
 # =============================================================
 # Stack: CORE LOCAL
-# Portainer · Nginx Proxy Manager · AdGuard Home · Homepage · Uptime Kuma
+# Portainer · AdGuard Home · Homepage
 # Base del homelab local-first
 # =============================================================
 
@@ -30,22 +30,6 @@ services:
       - portainer_data:/data
     ports:
       - "127.0.0.1:9443:9443"
-    networks:
-      - homelab
-
-  npm:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: npm
-    restart: unless-stopped
-    ports:
-      - "${NPM_HTTP_PORT:-80}:80"
-      - "${NPM_HTTPS_PORT:-443}:443"
-      - "127.0.0.1:${NPM_ADMIN_PORT:-81}:81"
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/npm/data:/data
-      - ${HOMELAB_ROOT:-/srv}/data/npm/letsencrypt:/etc/letsencrypt
-    environment:
-      TZ: ${TZ:-America/Santiago}
     networks:
       - homelab
 
@@ -97,18 +81,5 @@ services:
       - ${HOMELAB_ROOT:-/srv}/data/homepage/config:/app/config
     ports:
       - "3001:3000"
-    networks:
-      - homelab
-
-  uptime-kuma:
-    image: louislam/uptime-kuma:latest
-    container_name: uptime-kuma
-    restart: unless-stopped
-    environment:
-      TZ: ${TZ:-America/Santiago}
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/uptime-kuma:/app/data
-    ports:
-      - "127.0.0.1:3002:3001"
     networks:
       - homelab

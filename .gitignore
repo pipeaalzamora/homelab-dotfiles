@@ -1,3 +1,4 @@
 env/.env
 stacks/**/.env
 *.log
+POST-INSTALL-README.md
