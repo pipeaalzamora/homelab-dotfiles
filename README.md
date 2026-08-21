@@ -4,6 +4,15 @@ Dotfiles para un homelab local-first: multimedia familiar, cloud privado tipo Go
 
 El objetivo principal es correr servicios dentro de la red de casa, sin exponerlos a internet. Tailscale queda como opción para administración remota futura.
 
+## Compatibilidad
+
+Este homelab es compatible con:
+- **Linux** (Debian, Ubuntu, etc.) - Scripts Bash
+- **macOS** - Scripts Bash  
+- **Windows** - Scripts PowerShell
+
+Para usuarios de Windows, consulta la [**Guía de Instalación para Windows**](WINDOWS.md) con instrucciones específicas.
+
 ## Prioridades
 
 1. Multimedia: Jellyfin, Jellyseerr, Sonarr, Radarr, Prowlarr, Bazarr y qBittorrent.
@@ -16,12 +25,18 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
 
 ```txt
 .
-├── install.sh
+├── install.sh                  # Linux/macOS
+├── install.ps1                 # Windows
+├── install-local.sh            # Linux/macOS (local)
+├── install-local.ps1           # Windows (local)
 ├── scripts/
-│   ├── 01-base.sh
-│   ├── 02-docker.sh
-│   ├── 03-dirs.sh
-│   └── 04-tailscale.sh
+│   ├── 01-base.sh              # Linux/macOS
+│   ├── 02-docker.sh            # Linux/macOS
+│   ├── 03-dirs.sh              # Linux/macOS
+│   ├── 03-dirs.ps1             # Windows
+│   ├── 04-tailscale.sh         # Linux/macOS
+│   ├── generate-local-env.sh   # Linux/macOS
+│   └── generate-local-env.ps1  # Windows
 ├── stacks/
 │   ├── core/       # Portainer, NPM, AdGuard, Homepage, Uptime Kuma
 │   ├── media/      # Jellyfin + arr + qBittorrent
@@ -46,6 +61,8 @@ El objetivo principal es correr servicios dentro de la red de casa, sin exponerl
 
 ## Instalacion Local En Este PC
 
+### Linux / macOS
+
 Para probarlo en tu computador actual, usa:
 
 ```bash
@@ -63,8 +80,6 @@ Por defecto usa:
 
 Ese path se controla con `HOMELAB_ROOT` en `env/.env`.
 
-El instalador local no toca SSH, UFW, Tailscale ni paquetes del sistema. Solo crea carpetas, copia configs y levanta stacks Docker.
-
 Si Docker responde con permiso denegado, corrige el acceso en una terminal normal:
 
 ```bash
@@ -75,6 +90,30 @@ docker ps
 ```
 
 Si `/var/run/docker.sock` no pertenece al grupo `docker`, reinicia Docker o el equipo y vuelve a probar.
+
+### Windows
+
+Para Windows, usa PowerShell:
+
+```powershell
+Copy-Item env\.env.example env\.env
+notepad env\.env
+.\install-local.ps1
+```
+
+Por defecto usa:
+
+```txt
+C:\Users\TU_USUARIO\homelab
+```
+
+Ese path se controla con `HOMELAB_ROOT` en `env\.env`.
+
+**Nota importante:** En Windows, Docker Desktop debe estar ejecutándose antes de lanzar el instalador.
+
+### Común para todos los sistemas
+
+El instalador local no toca SSH, UFW, Tailscale ni paquetes del sistema. Solo crea carpetas, copia configs y levanta stacks Docker.
 
 ## Discos Recomendados Para Servidor Dedicado
 
@@ -91,11 +130,24 @@ Si el HDD se monta en otro punto, ajusta los bind mounts antes de instalar.
 
 ## Instalacion En Servidor Dedicado
 
+### Linux (Debian, Ubuntu, etc.)
+
 ```bash
 cp env/.env.example env/.env
 nano env/.env
 sudo bash install.sh
 ```
+
+### Windows Server
+
+```powershell
+# Ejecutar PowerShell como Administrador
+Copy-Item env\.env.example env\.env
+notepad env\.env
+.\install.ps1
+```
+
+### Común para todos los sistemas
 
 Ruta recomendada en el instalador:
 

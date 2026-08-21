@@ -29,11 +29,14 @@ services:
       - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies:ro
       - ${HOMELAB_ROOT:-/srv}/media/series:/data/series:ro
       - ${HOMELAB_ROOT:-/srv}/media/music:/data/music:ro
-    devices:
-      - /dev/dri:/dev/dri
-    group_add:
-      - "44"   # video
-      - "990"  # render
+    # Aceleración de hardware (solo Linux/macOS)
+    # En Windows, Docker Desktop no soporta /dev/dri
+    # Descomentar solo en Linux:
+    # devices:
+    #   - /dev/dri:/dev/dri
+    # group_add:
+    #   - "44"   # video
+    #   - "990"  # render
     ports:
       - "8096:8096"
     networks:
