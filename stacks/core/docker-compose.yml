@@ -1,6 +1,6 @@
 # =============================================================
 # Stack: CORE LOCAL
-# Portainer · AdGuard Home · Homepage
+# Portainer · Homepage · Docker Socket Proxy
 # Base del homelab local-first
 # =============================================================
 
@@ -30,23 +30,6 @@ services:
       - portainer_data:/data
     ports:
       - "127.0.0.1:9443:9443"
-    networks:
-      - homelab
-
-  adguard:
-    image: adguard/adguardhome:latest
-    container_name: adguard
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:${ADGUARD_DNS_PORT:-53}:53/tcp"
-      - "127.0.0.1:${ADGUARD_DNS_PORT:-53}:53/udp"
-      - "127.0.0.1:${ADGUARD_SETUP_PORT:-3000}:3000/tcp"
-      - "127.0.0.1:${ADGUARD_ADMIN_PORT:-8080}:80/tcp"
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/adguard/work:/opt/adguardhome/work
-      - ${HOMELAB_ROOT:-/srv}/data/adguard/conf:/opt/adguardhome/conf
-    environment:
-      TZ: ${TZ:-America/Santiago}
     networks:
       - homelab
 

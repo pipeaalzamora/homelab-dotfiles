@@ -1,7 +1,6 @@
 ---
 # =============================================================
 # Homepage — Configuración general
-# Copiar a /srv/data/homepage/config/settings.yaml
 # =============================================================
 
 title: Homelab — Pipe Edition
@@ -18,27 +17,9 @@ layout:
   🔒 Core:
     style: row
     columns: 2
-  ☁️ Personal:
-    style: row
-    columns: 1
   🎬 Media:
     style: row
     columns: 8
-  💼 Dev:
-    style: row
-    columns: 2
-  🔐 Secretos:
-    style: row
-    columns: 1
-  💰 Finanzas:
-    style: row
-    columns: 1
-  📚 Conocimiento:
-    style: row
-    columns: 6
   📝 Productividad:
     style: row
     columns: 3
-  🛡️ Seguridad:
-    style: row
-    columns: 1

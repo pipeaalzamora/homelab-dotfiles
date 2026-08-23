@@ -1,9 +1,6 @@
 ---
 # =============================================================
 # Homepage — Servicios del homelab
-# Copiar a /srv/data/homepage/config/services.yaml
-# El campo server/container enlaza con la integración Docker
-# definida en docker.yaml (my-docker).
 # =============================================================
 
 - 🔒 Core:
@@ -13,20 +10,12 @@
         icon: portainer.png
         server: my-docker
         container: portainer
-    - AdGuard Home:
-        href: http://localhost:8080
-        description: DNS bloqueador
-        icon: adguard-home.png
+    - Infisical:
+        href: http://localhost:8083
+        description: Gestión de secretos
+        icon: infisical.png
         server: my-docker
-        container: adguard
-
-- ☁️ Personal:
-    - Nextcloud:
-        href: http://localhost:8082
-        description: Google Drive local
-        icon: nextcloud.png
-        server: my-docker
-        container: nextcloud
+        container: infisical
 
 - 🎬 Media:
     - Jellyfin:
@@ -78,74 +67,6 @@
         server: my-docker
         container: qbittorrent
 
-- 💼 Dev:
-    - Forgejo:
-        href: http://localhost:3004
-        description: Git self-hosted
-        icon: gitea.png
-        server: my-docker
-        container: forgejo
-    - BookStack:
-        href: http://localhost:6875
-        description: Wiki interna
-        icon: bookstack.png
-        server: my-docker
-        container: bookstack
-
-- 🔐 Secretos:
-    - Infisical:
-        href: http://localhost:8083
-        description: Gestión de secretos
-        icon: infisical.png
-        server: my-docker
-        container: infisical
-
-- 💰 Finanzas:
-    - Facto:
-        href: http://localhost:8086
-        description: Contabilidad familiar
-        icon: https://raw.githubusercontent.com/nymanjens/facto/master/public/images/favicon.png
-        server: my-docker
-        container: facto
-
-- 📚 Conocimiento:
-    - Piga:
-        href: http://localhost:8087
-        description: Listas y notas
-        icon: mdi-format-list-checks
-        server: my-docker
-        container: piga
-    - Docat:
-        href: http://localhost:8089
-        description: Documentación versionada
-        icon: mdi-bookshelf
-        server: my-docker
-        container: docat
-    - EveryDocs:
-        href: http://localhost:8090
-        description: Documentos PDF
-        icon: mdi-file-document-multiple
-        server: my-docker
-        container: everydocs-web
-    - DailyTxT:
-        href: http://localhost:8092
-        description: Diario cifrado
-        icon: mdi-book-edit
-        server: my-docker
-        container: dailytxt
-    - Wastebin:
-        href: http://localhost:8093
-        description: Pastebin local
-        icon: mdi-clipboard-text
-        server: my-docker
-        container: wastebin
-    - Iguana:
-        href: http://localhost:8094
-        description: Tickets y proyectos
-        icon: mdi-ticket-confirmation
-        server: my-docker
-        container: iguana
-
 - 📝 Productividad:
     - Excalidraw:
         href: http://localhost:8084
@@ -165,11 +86,3 @@
         icon: appflowy.png
         server: my-docker
         container: appflowy-appflowy_web-1
-
-- 🛡️ Seguridad:
-    - Authelia:
-        href: http://localhost:9091
-        description: SSO y 2FA
-        icon: authelia.png
-        server: my-docker
-        container: authelia

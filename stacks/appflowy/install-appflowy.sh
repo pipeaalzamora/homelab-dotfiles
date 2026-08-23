@@ -23,13 +23,9 @@ APP_DIR="$HOMELAB_ROOT/appflowy"
 HTTP_PORT=8095
 TLS_PORT=8447
 
-# IP LAN del host. AppFlowy usa una sola APPFLOWY_BASE_URL tanto para el
-# navegador como para las llamadas servidor-a-servidor del admin_frontend.
-# 'localhost' no sirve porque dentro del contenedor apunta a sí mismo; la IP
-# del host es alcanzable desde ambos lados (navegador y contenedor).
-HOST_IP=$(ip route get 1.1.1.1 2>/dev/null | grep -oE 'src [0-9.]+' | awk '{print $2}')
-HOST_IP=${HOST_IP:-127.0.0.1}
-echo "==> Usando IP del host: $HOST_IP"
+# Host local
+HOST_IP="localhost"
+echo "==> Usando host: $HOST_IP"
 
 # --- Clonar repo si no existe ---------------------------------
 if [[ ! -d "$APP_DIR" ]]; then

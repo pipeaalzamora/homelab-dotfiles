@@ -36,16 +36,9 @@ $APP_DIR = "$HOMELAB_ROOT\appflowy"
 $HTTP_PORT = 8095
 $TLS_PORT = 8447
 
-# IP LAN del host
-$HOST_IP = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Ethernet*","Wi-Fi*" | 
-           Where-Object { $_.IPAddress -notmatch "^169\." -and $_.PrefixOrigin -eq "Dhcp" } | 
-           Select-Object -First 1).IPAddress
-
-if (-not $HOST_IP) {
-    $HOST_IP = "127.0.0.1"
-}
-
-Write-Host "==> Usando IP del host: $HOST_IP" -ForegroundColor Cyan
+# Host local
+$HOST_IP = "localhost"
+Write-Host "==> Usando host: $HOST_IP" -ForegroundColor Cyan
 
 # --- Clonar repo si no existe ---------------------------------
 if (-not (Test-Path $APP_DIR)) {
