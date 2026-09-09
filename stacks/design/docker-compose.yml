@@ -34,7 +34,7 @@ services:
       retries: 5
 
   penpot-backend:
-    image: penpotapp/penpot-backend:latest
+    image: ghcr.io/penpot/penpot-backend:latest
     container_name: penpot-backend
     restart: unless-stopped
     volumes:
@@ -53,7 +53,7 @@ services:
       - homelab
 
   penpot-frontend:
-    image: penpotapp/penpot-frontend:latest
+    image: ghcr.io/penpot/penpot-frontend:latest
     container_name: penpot-frontend
     restart: unless-stopped
     ports:
