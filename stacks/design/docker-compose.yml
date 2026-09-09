@@ -19,21 +19,51 @@ services:
       timeout: 5s
       retries: 5
 
-  penpot:
-    image: penpotapp/penpot:latest
-    container_name: penpot
+  penpot-redis:
+    image: redis:7-alpine
+    container_name: penpot-redis
     restart: unless-stopped
-    ports:
-      - "3012:80"
+    volumes:
+      - ${HOMELAB_ROOT}/data/design/penpot-redis:/data
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  penpot-backend:
+    image: penpotapp/penpot-backend:latest
+    container_name: penpot-backend
+    restart: unless-stopped
     volumes:
       - ${HOMELAB_ROOT}/data/design/penpot-assets:/opt/penpot/assets
     environment:
       - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
+      - PENPOT_REDIS_URI=redis://penpot-redis/0
       - PENPOT_SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
       - PENPOT_PUBLIC_URI=http://${LAN_IP}:3012
     depends_on:
       penpot-postgres:
         condition: service_healthy
+      penpot-redis:
+        condition: service_healthy
+    networks:
+      - homelab
+
+  penpot-frontend:
+    image: penpotapp/penpot-frontend:latest
+    container_name: penpot-frontend
+    restart: unless-stopped
+    ports:
+      - "3012:80"
+    volumes:
+      - ${HOMELAB_ROOT}/data/design/penpot-assets:/opt/penpot/assets:ro
+    environment:
+      - PENPOT_BACKEND_URI=http://penpot-backend:6060
+    depends_on:
+      - penpot-backend
     networks:
       - homelab
     labels:
