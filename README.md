@@ -14,8 +14,9 @@ homelab-dotfiles/
 │   ├── productivity/  # Productividad (Excalidraw, Stirling-PDF)
 │   ├── appflowy/      # Notas (AppFlowy-Cloud)
 │   ├── secrets/       # Gestión de secretos (Infisical)
-│   ├── reading/       # Lectura (BookOrbit) ⭐ NUEVO
-│   └── design/        # Diseño UI/UX (Penpot) ⭐ NUEVO
+│   ├── reading/       # Lectura (BookOrbit)
+│   ├── design/        # Diseño UI/UX (Penpot)
+│   └── finance/       # Finanzas personales (Securo) ⭐ NUEVO
 ├── install.sh         # Script de instalación Linux/macOS
 ├── install.ps1        # Script de instalación Windows
 └── install-local.sh   # Instalació±±±n local (desarrollo)
@@ -45,11 +46,30 @@ homelab-dotfiles/
 ### Secrets (`stacks/secrets/`)
 - Infisical (gestió±±±n centralizada de secretos con PostgreSQL + Redis)
 
-### Reading (`stacks/reading/`) ⭐ NUEVO
+### Reading (`stacks/reading/`)
 - BookOrbit (biblioteca de ebooks, audiobooks, cómics y PDFs)
 
-### Design (`stacks/design/`) ⭐ NUEVO
+### Design (`stacks/design/`)
 - Penpot (plataforma de diseño UI/UX open-source)
+
+### Finance (`stacks/finance/`) ⭐ NUEVO
+- Securo (gestor de finanzas personales con bank sync opcional, presupuestos, metas, inversiones)
+
+## Acceso a Servicios
+
+Todos los servicios están disponibles en `http://${LAN_IP}:${PUERTO}`:
+
+| Servicio | Puerto | URL |
+|----------|--------|-----|
+| Portainer | 8081 | `http://${LAN_IP}:8081` |
+| Jellyfin | 8096 | `http://${LAN_IP}:8096` |
+| Excalidraw | 8084 | `http://${LAN_IP}:8084` |
+| Stirling-PDF | 8085 | `http://${LAN_IP}:8085` |
+| AppFlowy | 8095 | `http://${LAN_IP}:8095` |
+| Infisical | 8087 | `http://${LAN_IP}:8087` |
+| BookOrbit | 8090 | `http://${LAN_IP}:8090` |
+| Penpot | 8091 | `http://${LAN_IP}:8091` |
+| Securo | 8092 | `http://${LAN_IP}:8092` |
 
 ## Instalació±±±n
 
@@ -76,21 +96,6 @@ cd homelab-dotfiles
 .\install.ps1
 ```
 
-## Acceso a Servicios
-
-Todos los servicios están disponibles en `http://${LAN_IP}:${PUERTO}`:
-
-| Servicio | Puerto | URL |
-|----------|--------|-----|
-| Portainer | 8080 | `http://${LAN_IP}:8080` |
-| Jellyfin | 8096 | `http://${LAN_IP}:8096` |
-| Excalidraw | 8084 | `http://${LAN_IP}:8084` |
-| Stirling-PDF | 8085 | `http://${LAN_IP}:8085` |
-| AppFlowy | 8095 | `http://${LAN_IP}:8095` |
-| Infisical | 8087 | `http://${LAN_IP}:8087` |
-| BookOrbit | 8090 | `http://${LAN_IP}:8090` |
-| Penpot | 8091 | `http://${LAN_IP}:8091` |
-
 ## Variables de Entorno
 
 El archivo `env/.env.example` contiene las variables necesarias:
@@ -107,7 +112,7 @@ En la consolidació±±±n de agosto 2026 se eliminaron los siguientes servicios
 - AdGuard Home
 - Netdata
 
-Tambié±± ±n se eliminaron stacks completos: dev, finance, knowledge, personal, security.
+Tambié±± ±n se eliminaron stacks completos: dev, finance (Facto), knowledge, personal, security.
 
 ## Seguridad
 
@@ -137,6 +142,7 @@ docker compose down
 
 - [BookOrbit](https://github.com/bookorbit/bookorbit) - Plataforma de lectura self-hosted
 - [Penpot](https://penpot.app/) - Plataforma de diseño UI/UX open-source
+- [Securo](https://github.com/securo-finance/securo) - Gestor de finanzas personales self-hosted
 - [Servers@Home](https://wiki.serversatho.me/) - Guí±± ±as de TrueNAS y Docker
 
 ---

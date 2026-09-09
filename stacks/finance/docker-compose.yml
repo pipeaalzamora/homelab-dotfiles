@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  securo-postgres:
+    image: postgres:16-alpine
+    container_name: securo-postgres
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/finance/securo-postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=securo
+      - POSTGRES_USER=securo
+      - POSTGRES_PASSWORD=securo_db_password_change_me
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U securo -d securo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  securo-redis:
+    image: redis:7-alpine
+    container_name: securo-redis
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/finance/securo-redis:/data
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  securo-backend:
+    image: ghcr.io/securo-finance/securo-backend:0.14.3
+    container_name: securo-backend
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/finance/securo-attachments:/app/data/attachments
+    environment:
+      - DATABASE_URL=postgresql://securo:securo_db_password_change_me@securo-postgres/securo
+      - REDIS_URL=redis://securo-redis:6379
+      - SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
+      - FRONTEND_URL=http://${LAN_IP}:8092
+      - BACKEND_URL=http://${LAN_IP}:8093
+    depends_on:
+      securo-postgres:
+        condition: service_healthy
+      securo-redis:
+        condition: service_healthy
+    networks:
+      - homelab
+
+  securo-frontend:
+    image: ghcr.io/securo-finance/securo-frontend:0.14.3
+    container_name: securo-frontend
+    restart: unless-stopped
+    ports:
+      - "8092:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://${LAN_IP}:8093
+    depends_on:
+      - securo-backend
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Finance"
+      - "homepage.name=Securo"
+      - "homepage.description=Gestió±±±n de finanzas personales (presupuestos, bank sync, inversiones)"
+      - "homepage.icon=securo.svg"
+      - "homepage.href=http://${LAN_IP}:8092"
+
+  securo-celery-worker:
+    image: ghcr.io/securo-finance/securo-backend:0.14.3
+    container_name: securo-celery-worker
+    restart: unless-stopped
+    command: celery -A app.celery worker --loglevel=info
+    volumes:
+      - ${HOMELAB_ROOT}/data/finance/securo-attachments:/app/data/attachments
+    environment:
+      - DATABASE_URL=postgresql://securo:securo_db_password_change_me@securo-postgres/securo
+      - REDIS_URL=redis://securo-redis:6379
+      - SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
+    depends_on:
+      securo-postgres:
+        condition: service_healthy
+      securo-redis:
+        condition: service_healthy
+    networks:
+      - homelab
+
+  securo-celery-beat:
+    image: ghcr.io/securo-finance/securo-backend:0.14.3
+    container_name: securo-celery-beat
+    restart: unless-stopped
+    command: celery -A app.celery beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://securo:securo_db_password_change_me@securo-postgres/securo
+      - REDIS_URL=redis://securo-redis:6379
+      - SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
+    depends_on:
+      securo-postgres:
+        condition: service_healthy
+      securo-redis:
+        condition: service_healthy
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
