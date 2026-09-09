@@ -1,88 +1,147 @@
-# Homelab Pipe Edition
+# Homelab Dotfiles
 
-Dotfiles para un homelab local-first simplificado: streaming multimedia familiar, gestión de secretos, herramientas de productividad y gestión de contenedores con dashboard centralizado.
+Dotfiles y configuración para despliegue de homelab con Docker Compose. Diseñ±±±ado para ser multiplataforma (Linux, macOS, Windows).
 
-Todo se instala a través de **2 scripts únicos** que verifican requisitos, detectan la IP, generan contraseñas seguras y despliegan todo el stack automáticamente.
+## Estructura de Directorios
 
----
-
-## 🚀 Instalación Rápida
-
-### 🪟 Windows (PowerShell)
-
-Abre PowerShell en la carpeta del repositorio y ejecuta:
-
-```powershell
-.\install.ps1
+```
+homelab-dotfiles/
+├── configs/           # Configuraciones compartidas
+├── env/               # Variables de entorno (.env.example)
+├── stacks/            # Stacks de servicios Docker
+│   ├── core/          # Servicios base
+│   ├── media/         # Multimedia (Jellyfin, Sonarr, Radarr, etc.)
+│   ├── productivity/  # Productividad (Excalidraw, Stirling-PDF)
+│   ├── appflowy/      # Notas (AppFlowy-Cloud)
+│   ├── secrets/       # Gestión de secretos (Infisical)
+│   ├── reading/       # Lectura (BookOrbit) ⭐ NUEVO
+│   └── design/        # Diseño UI/UX (Penpot) ⭐ NUEVO
+├── install.sh         # Script de instalación Linux/macOS
+├── install.ps1        # Script de instalación Windows
+└── install-local.sh   # Instalació±±±n local (desarrollo)
 ```
 
-> **Nota:** En Windows, asegúrate de tener **Docker Desktop** iniciado antes de ejecutar el script.
+## Servicios por Stack
 
-### 🐧 Linux / macOS (Bash)
+### Core (`stacks/core/`)
+- Portainer
+- Docker Socket Proxy (para Homepage)
+
+### Media (`stacks/media/`)
+- Jellyfin (con aceleració±±±n GPU)
+- Sonarr
+- Radarr
+- Prowlarr
+- Bazarr
+- Transmission
+
+### Productivity (`stacks/productivity/`)
+- Excalidraw (diagramas)
+- Stirling-PDF (herramientas PDF)
+
+### AppFlowy (`stacks/appflowy/`)
+- AppFlowy-Cloud (notas self-hosted)
+
+### Secrets (`stacks/secrets/`)
+- Infisical (gestió±±±n centralizada de secretos con PostgreSQL + Redis)
+
+### Reading (`stacks/reading/`) ⭐ NUEVO
+- BookOrbit (biblioteca de ebooks, audiobooks, cómics y PDFs)
+
+### Design (`stacks/design/`) ⭐ NUEVO
+- Penpot (plataforma de diseño UI/UX open-source)
+
+## Instalació±±±n
+
+### Linux/macOS
 
 ```bash
+# Clonar repositorio
+git clone https://github.com/pipeaalzamora/homelab-dotfiles.git
+cd homelab-dotfiles
+
+# Ejecutar instalador
 chmod +x install.sh
 ./install.sh
 ```
 
----
+### Windows
 
-## 📦 ¿Qué incluye el Stack?
+```powershell
+# Clonar repositorio
+git clone https://github.com/pipeaalzamora/homelab-dotfiles.git
+cd homelab-dotfiles
 
-Al finalizar la instalación, se genera un archivo `POST-INSTALL-README.md` en el directorio de tu homelab con todas las URLs y accesos.
-
-| Categoría | Servicio | Descripción | Puerto |
-|-----------|----------|-------------|--------|
-| **Core** | **Homepage** | Dashboard central del homelab | 3001 |
-| | **Portainer** | Gestión visual de contenedores Docker | 9443 |
-| | **Infisical** | Gestión centralizada de secretos | 8083 |
-| **Media** | **Jellyfin** | Servidor de streaming multimedia | 8096 |
-| | **Jellyseerr** | Solicitudes de películas y series | 5055 |
-| | **Sonarr** | Automatización de series | 8989 |
-| | **Radarr** | Automatización de películas | 7878 |
-| | **Prowlarr** | Gestión de indexadores Torrent | 9696 |
-| | **FlareSolverr**| Bypass Cloudflare para Prowlarr | 8191 |
-| | **Bazarr** | Descarga automática de subtítulos | 6767 |
-| | **qBittorrent** | Cliente de descargas Torrent | 8081 |
-| **Productividad**| **Excalidraw** | Pizarra de diagramación | 8084 |
-| | **Stirling-PDF** | Suite de herramientas PDF | 8085 |
-| | **AppFlowy** | Alternativa Notion self-hosted | 8095 |
-| **Backups** | **Restic** | Copias de seguridad cifradas | Daemon |
-
----
-
-## 🛠️ Estructura del Repositorio
-
-```txt
-.
-├── install.ps1                 # Instalador único para Windows (PowerShell)
-├── install.sh                  # Instalador único para Linux/macOS (Bash)
-├── stacks/                     # Definiciones Docker Compose
-│   ├── core/                   # Portainer, DockerProxy, Homepage
-│   ├── secrets/                # Infisical, PostgreSQL, Redis
-│   ├── media/                  # Jellyfin, Sonarr, Radarr, Prowlarr, Bazarr, qBittorrent
-│   ├── productivity/           # Excalidraw, Stirling-PDF
-│   ├── appflowy/               # AppFlowy Cloud
-│   └── backups/                # Restic
-├── configs/                    # Archivos de configuración base y plantillas
-│   ├── homepage/               # Configuración del dashboard Homepage
-│   ├── env.template            # Plantilla para generación de .env
-│   └── POST-INSTALL-README.template.md
-└── env/
-    └── .env.example
+# Ejecutar instalador
+.\install.ps1
 ```
 
+## Acceso a Servicios
+
+Todos los servicios están disponibles en `http://${LAN_IP}:${PUERTO}`:
+
+| Servicio | Puerto | URL |
+|----------|--------|-----|
+| Portainer | 8080 | `http://${LAN_IP}:8080` |
+| Jellyfin | 8096 | `http://${LAN_IP}:8096` |
+| Excalidraw | 8084 | `http://${LAN_IP}:8084` |
+| Stirling-PDF | 8085 | `http://${LAN_IP}:8085` |
+| AppFlowy | 8095 | `http://${LAN_IP}:8095` |
+| Infisical | 8087 | `http://${LAN_IP}:8087` |
+| BookOrbit | 8090 | `http://${LAN_IP}:8090` |
+| Penpot | 8091 | `http://${LAN_IP}:8091` |
+
+## Variables de Entorno
+
+El archivo `env/.env.example` contiene las variables necesarias:
+
+- `HOMELAB_ROOT`: Ruta base del homelab (ej. `/srv/homelab` o `C:\homelab`)
+- `LAN_IP`: IP local del servidor (ej. `192.168.1.100`)
+- `PUID`/`PGID`: IDs de usuario/grupo para permisos (Linux/macOS)
+
+## Eliminados (Agosto 2026)
+
+En la consolidació±±±n de agosto 2026 se eliminaron los siguientes servicios del core:
+- Restic (backups)
+- Nginx Proxy Manager
+- AdGuard Home
+- Netdata
+
+Tambié±± ±n se eliminaron stacks completos: dev, finance, knowledge, personal, security.
+
+## Seguridad
+
+- ⚠️ Cambiar todas las contraseñ±±±as por defecto
+- ⚠️ Generar secret keys aleatorias para cada servicio
+- ⚠️ No exponer puertos directamente a Internet sin reverse proxy + autenticació±±±n
+- ⚠️ Usar red Docker externa (`homelab`) para aislar servicios
+
+## Comandos Útiles
+
+```bash
+# Ver servicios corriendo
+docker compose ps
+
+# Ver logs de un servicio
+docker compose logs -f <servicio>
+
+# Reiniciar un stack
+cd stacks/<stack>
+docker compose restart
+
+# Detener un stack
+docker compose down
+```
+
+## Créditos
+
+- [BookOrbit](https://github.com/bookorbit/bookorbit) - Plataforma de lectura self-hosted
+- [Penpot](https://penpot.app/) - Plataforma de diseño UI/UX open-source
+- [Servers@Home](https://wiki.serversatho.me/) - Guí±± ±as de TrueNAS y Docker
+
 ---
 
-## 📋 Proceso de Instalación (8 Fases)
-
-Ambos scripts ejecutan automáticamente la misma secuencia:
-
-1. **Verificación de Requisitos**: Docker Engine / Desktop, Docker Compose v2, Git, estado del daemon y recursos de sistema (RAM/Disco).
-2. **Detección de IP**: Detecta tu IP local en la red (LAN) y confirma su uso.
-3. **Generación de Entorno (`.env`)**: Crea credenciales y claves criptográficas aleatorias.
-4. **Estructura de Directorios**: Crea las carpetas de datos persistentes en tu carpeta de usuario.
-5. **Configuraciones**: Copia y sustituye variables en las configuraciones de Homepage.
-6. **Despliegue de Stacks**: Inicializa la red de Docker y levanta los contenedores en orden.
-7. **Verificación de Estado**: Muestra un resumen del estado de ejecución (`✅` / `❌`) de cada contenedor.
-8. **README Post-Instalación**: Genera `POST-INSTALL-README.md` con las URLs exactas y credenciales generadas.
+**Autor:** Felipe "pipe" Aros Alzamora  
+**Email:** pipeaalzamora@gmail.com  
+**Ubicació±±±n:** Santiago, Chile  
+**Ú± ±ltima actualizació±±±n:** Septiembre 2026

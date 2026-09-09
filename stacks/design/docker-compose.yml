@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  penpot-postgres:
+    image: postgres:15-alpine
+    container_name: penpot-postgres
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/design/penpot-postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=penpot
+      - POSTGRES_USER=penpot
+      - POSTGRES_PASSWORD=penpot_password_change_me
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penpot -d penpot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  penpot:
+    image: penpotapp/penpot:latest
+    container_name: penpot
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    volumes:
+      - ${HOMELAB_ROOT}/data/design/penpot-assets:/opt/penpot/assets
+    environment:
+      - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
+      - PENPOT_SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
+      - PENPOT_PUBLIC_URI=http://${LAN_IP}:8091
+    depends_on:
+      penpot-postgres:
+        condition: service_healthy
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Design"
+      - "homepage.name=Penpot"
+      - "homepage.description=Plataforma de diseño UI/UX (alternativa a Figma)"
+      - "homepage.icon=penpot.svg"
+      - "homepage.href=http://${LAN_IP}:8091"
+
+networks:
+  homelab:
+    external: true
