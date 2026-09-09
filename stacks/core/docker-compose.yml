@@ -1,68 +1,49 @@
-# =============================================================
-# Stack: CORE LOCAL
-# Portainer · Homepage · Docker Socket Proxy
-# Base del homelab local-first
-# =============================================================
-
-networks:
-  homelab:
-    external: true
-
-volumes:
-  portainer_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${HOMELAB_ROOT:-/srv}/data/portainer
+version: '3.8'
 
 services:
-
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - portainer_data:/data
     ports:
-      - "127.0.0.1:9443:9443"
+      - "8080:8000"
+      - "8081:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOMELAB_ROOT}/data/portainer:/data
     networks:
       - homelab
+    labels:
+      - "homepage.group=Core"
+      - "homepage.name=Portainer"
+      - "homepage.description=Gestió±±±n de contenedores Docker"
+      - "homepage.icon=docker.svg"
+      - "homepage.href=http://${LAN_IP}:8081"
 
-  # Proxy de solo lectura para el socket Docker.
-  # Homepage habla con él por TCP en vez de tocar el socket directo.
-  dockerproxy:
-    image: ghcr.io/tecnativa/docker-socket-proxy:latest
-    container_name: dockerproxy
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: docker-socket-proxy
     restart: unless-stopped
-    environment:
-      CONTAINERS: 1
-      SERVICES: 1
-      TASKS: 1
-      POST: 0
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - homelab
-
-  homepage:
-    image: ghcr.io/gethomepage/homepage:latest
-    container_name: homepage
-    restart: unless-stopped
-    depends_on:
-      - dockerproxy
     environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_ALLOWED_HOSTS:-localhost:3001,127.0.0.1:3001}
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/homepage/config:/app/config
-    ports:
-      - "3001:3000"
+      - CONTAINERS=1
+      - SERVICES=1
+      - TASKS=1
+      - NODES=1
+      - INFO=1
+      - VERSION=1
+      - EVENTS=1
+      - NETWORKS=1
+      - VOLUMES=1
     networks:
       - homelab
+    labels:
+      - "homepage.group=Core"
+      - "homepage.name=Docker Socket Proxy"
+      - "homepage.description=Proxy seguro para socket de Docker (Homepage)"
+      - "homepage.icon=docker.svg"
+
+networks:
+  homelab:
+    external: true
