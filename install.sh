@@ -1,256 +1,227 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -e
 
-# ==============================================================================
-# Script de Instalación del Homelab (Linux / macOS) — Modo Localhost
-# ==============================================================================
-
-# Colores para la salida
+# Colores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Función para manejar errores
-cleanup() {
-    local exit_code=$?
-    if [ $exit_code -ne 0 ]; then
-        echo -e "\n${RED}❌ Error detectado. Saliendo del script (Código de salida: $exit_code).${NC}"
-    fi
+# Funciones de logging
+log_info() {
+    echo -e "${BLUE}$1${NC}"
 }
-trap cleanup EXIT
 
-# Iniciar cronómetro
-START_TIME=$(date +%s)
+log_success() {
+    echo -e "${GREEN}$1${NC}"
+}
 
-echo -e "${CYAN}${BOLD}====================================================${NC}"
-echo -e "${CYAN}${BOLD}       Instalador de Homelab automatizado           ${NC}"
-echo -e "${CYAN}${BOLD}====================================================${NC}\n"
+log_warn() {
+    echo -e "${YELLOW}$1${NC}"
+}
 
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+log_error() {
+    echo -e "${RED}$1${NC}"
+}
 
-# ------------------------------------------------------------------------------
-# Phase 1: Check Prerequisites
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[1/8]${NC} Verificando prerrequisitos..."
+# Banner
+echo "===================================================="
+echo "       Instalador de Homelab automatizado           "
+echo "===================================================="
+echo ""
 
-check_cmd() {
-    if command -v "$1" >/dev/null 2>&1; then
-        echo -e "  ${GREEN}✓${NC} $2 instalado: $("$@" 2>&1 | head -n 1)"
+# Variables
+HOMELAB_ROOT="${HOMELAB_ROOT:-/home/$USER/homelab}"
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LAN_IP="${LAN_IP:-127.0.0.1}"
+
+# =============================================================================
+# [1/8] Verificando prerrequisitos
+# =============================================================================
+log_info "[1/8] Verificando prerrequisitos..."
+
+check_command() {
+    if command -v "$1" &> /dev/null; then
+        log_success "  ✓ $1 instalado: $($1 --version 2>&1 | head -n1)"
         return 0
     else
-        echo -e "  ${RED}✗${NC} $2 no está instalado."
+        log_error "  ✗ $1 no está instalado"
         return 1
     fi
 }
 
-PREREQ_FAILED=0
-check_cmd docker --version "Docker Engine" || PREREQ_FAILED=1
-check_cmd docker compose version "Docker Compose v2" || PREREQ_FAILED=1
-check_cmd git --version "Git" || PREREQ_FAILED=1
-check_cmd openssl version "OpenSSL" || PREREQ_FAILED=1
-
-if docker info >/dev/null 2>&1; then
-    echo -e "  ${GREEN}✓${NC} Docker daemon está corriendo."
-else
-    echo -e "  ${RED}✗${NC} Docker daemon no está corriendo o no hay permisos."
-    PREREQ_FAILED=1
-fi
-
-if [ $PREREQ_FAILED -eq 1 ]; then
-    echo -e "\n${RED}Faltan dependencias críticas. Por favor instala Docker, Git y OpenSSL antes de continuar.${NC}"
+# Verificar Docker
+if ! check_command "docker"; then
+    log_error "Docker no está instalado. Por favor instala Docker antes de continuar."
     exit 1
 fi
 
-# Advertencias de recursos (RAM y Disco)
-TOTAL_RAM=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 8388608)
-TOTAL_RAM_GB=$((TOTAL_RAM / 1024 / 1024))
-if [ "$TOTAL_RAM_GB" -lt 4 ]; then
-    echo -e "  ${YELLOW}⚠${NC} Memoria RAM detectada: ${TOTAL_RAM_GB}GB - Se recomiendan al menos 4GB"
-else
-    echo -e "  ${GREEN}✓${NC} Memoria RAM detectada: ${TOTAL_RAM_GB}GB"
+# Verificar Docker daemon
+if ! docker info &> /dev/null; then
+    log_error "Docker daemon no está corriendo o no hay permisos."
+    exit 1
+fi
+log_success "  ✓ Docker daemon está corriendo."
+
+# Verificar Git
+if ! check_command "git"; then
+    log_error "Git no está instalado."
+    exit 1
 fi
 
-FREE_DISK=$(df -BG / 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//' || echo 50)
-if [ "$FREE_DISK" -lt 20 ]; then
-    echo -e "  ${YELLOW}⚠${NC} Espacio en disco disponible: ${FREE_DISK}GB - Se recomiendan al menos 20GB"
-else
-    echo -e "  ${GREEN}✓${NC} Espacio en disco disponible: ${FREE_DISK}GB"
+# Verificar OpenSSL
+if ! command -v openssl &> /dev/null; then
+    log_error "OpenSSL no está instalado."
+    exit 1
 fi
+log_success "  ✓ OpenSSL instalado: $(openssl version)"
+
+# Verificar recursos
+RAM_GB=$(free -g | awk '/^Mem:/{print $2}')
+log_success "  ✓ Memoria RAM detectada: ${RAM_GB}GB"
+
+DISK_GB=$(df -BG "$HOMELAB_ROOT" 2>/dev/null | tail -1 | awk '{print $4}' | sed 's/G//')
+if [ -z "$DISK_GB" ]; then
+    DISK_GB=$(df -BG / | tail -1 | awk '{print $4}' | sed 's/G//')
+fi
+log_success "  ✓ Espacio en disco disponible: ${DISK_GB}GB"
+
 echo ""
 
-# ------------------------------------------------------------------------------
-# Phase 2: Network / Host Configuration (localhost)
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[2/8]${NC} Configurando acceso local (localhost)..."
-HOST_IP="localhost"
-echo -e "  ${GREEN}✓${NC} Host configurado: $HOST_IP (127.0.0.1)\n"
+# =============================================================================
+# [2/8] Configurando acceso local
+# =============================================================================
+log_info "[2/8] Configurando acceso local (localhost)..."
 
-# ------------------------------------------------------------------------------
-# Phase 3: Generate env/.env
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[3/8]${NC} Generando archivo de variables de entorno (.env)..."
+if ! grep -q "localhost" /etc/hosts 2>/dev/null; then
+    echo "127.0.0.1 localhost" | sudo tee -a /etc/hosts > /dev/null
+fi
+log_success "  ✓ Host configurado: localhost (127.0.0.1)"
 
-HOMELAB_ROOT="/home/$(whoami)/homelab"
-PUID=$(id -u)
-PGID=$(id -g)
+echo ""
 
-mkdir -p "$SCRIPT_DIR/env"
-ENV_FILE="$SCRIPT_DIR/env/.env"
+# =============================================================================
+# [3/8] Generando archivo de variables de entorno (.env)
+# =============================================================================
+log_info "[3/8] Generando archivo de variables de entorno (.env)..."
 
-gen_hex() { openssl rand -hex "$1"; }
-gen_b64() { openssl rand -base64 "$1" | tr -d '\n'; }
-gen_alphanum() { openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c "$1"; }
+if [ ! -d "$DOTFILES_DIR/env" ]; then
+    mkdir -p "$DOTFILES_DIR/env"
+fi
 
-INFISICAL_DB_PASS=$(gen_b64 32)
-INFISICAL_KEY=$(gen_hex 16)
-INFISICAL_SECRET=$(gen_b64 32)
-QBIT_PASS=$(gen_alphanum 18)
-RESTIC_PASS=$(gen_b64 32)
-APPFLOWY_PASS_VAL=$(gen_alphanum 18)
-
-cat <<EOF > "$ENV_FILE"
-# ==========================================
-# HOMELAB ENVIRONMENT VARIABLES
-# Generado automáticamente
-# ==========================================
-
-HOMELAB_ROOT=$HOMELAB_ROOT
-HOST_IP=$HOST_IP
-LOCAL_DOMAIN=home
-PUID=$PUID
-PGID=$PGID
+if [ ! -f "$DOTFILES_DIR/env/.env" ]; then
+    cp "$DOTFILES_DIR/env/.env.example" "$DOTFILES_DIR/env/.env" 2>/dev/null || {
+        cat > "$DOTFILES_DIR/env/.env" << 'ENVEOF'
+HOMELAB_ROOT=/home/pipeaalzamora/homelab
+LAN_IP=127.0.0.1
 TZ=America/Santiago
-
-# --- Homepage ---
-HOMEPAGE_ALLOWED_HOSTS=localhost:3001,127.0.0.1:3001
-
-# --- Infisical (gestión de secretos) ---
-INFISICAL_DB_PASSWORD=$INFISICAL_DB_PASS
-INFISICAL_ENCRYPTION_KEY=$INFISICAL_KEY
-INFISICAL_AUTH_SECRET=$INFISICAL_SECRET
-INFISICAL_SITE_URL=http://localhost:8083
-INFISICAL_TELEMETRY_ENABLED=false
-
-# --- Torrent ---
-QBITTORRENT_PASSWORD=$QBIT_PASS
-
-# --- Backups (Restic) ---
-RESTIC_PASSWORD=$RESTIC_PASS
-RESTIC_REPOSITORY=local:/mnt/restic-repo
-EOF
-
-echo -e "  ${GREEN}✓${NC} Archivo env/.env generado con éxito.\n"
-
-# ------------------------------------------------------------------------------
-# Phase 4: Create Directory Structure
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[4/8]${NC} Creando estructura de directorios en $HOMELAB_ROOT..."
-
-mkdir -p "$HOMELAB_ROOT/data/portainer"
-mkdir -p "$HOMELAB_ROOT/data/homepage/config"
-mkdir -p "$HOMELAB_ROOT/data/infisical/db" "$HOMELAB_ROOT/data/infisical/redis"
-mkdir -p "$HOMELAB_ROOT/data/jellyfin/config" "$HOMELAB_ROOT/data/jellyfin/cache"
-mkdir -p "$HOMELAB_ROOT/data/jellyseerr/config"
-mkdir -p "$HOMELAB_ROOT/data/sonarr/config"
-mkdir -p "$HOMELAB_ROOT/data/radarr/config"
-mkdir -p "$HOMELAB_ROOT/data/prowlarr/config"
-mkdir -p "$HOMELAB_ROOT/data/bazarr/config"
-mkdir -p "$HOMELAB_ROOT/data/qbittorrent/config"
-mkdir -p "$HOMELAB_ROOT/data/stirling-pdf/data" "$HOMELAB_ROOT/data/stirling-pdf/config" "$HOMELAB_ROOT/data/stirling-pdf/custom"
-mkdir -p "$HOMELAB_ROOT/media/movies" "$HOMELAB_ROOT/media/series" "$HOMELAB_ROOT/media/music" "$HOMELAB_ROOT/media/downloads"
-mkdir -p "$HOMELAB_ROOT/backups/restic-repo"
-
-chown -R "$PUID:$PGID" "$HOMELAB_ROOT" 2>/dev/null || true
-echo -e "  ${GREEN}✓${NC} Directorios creados exitosamente.\n"
-
-# ------------------------------------------------------------------------------
-# Phase 5: Copy Configs
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[5/8]${NC} Copiando archivos de configuración..."
-
-if [ -d "$SCRIPT_DIR/configs/homepage" ]; then
-    cp -r "$SCRIPT_DIR/configs/homepage/"* "$HOMELAB_ROOT/data/homepage/config/"
+PUID=1000
+PGID=1000
+ENVEOF
+    }
+    log_success "  ✓ Archivo env/.env generado con éxito."
+else
+    log_warn "  ⚠ env/.env ya existe, saltando."
 fi
 
-echo -e "  ${GREEN}✓${NC} Configuraciones copiadas.\n"
+echo ""
 
-# ------------------------------------------------------------------------------
-# Phase 6: Deploy Stacks
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[6/8]${NC} Desplegando Stacks de Docker..."
+# =============================================================================
+# [4/8] Creando estructura de directorios
+# =============================================================================
+log_info "[4/8] Creando estructura de directorios en $HOMELAB_ROOT..."
 
-docker network inspect homelab >/dev/null 2>&1 || docker network create homelab
+mkdir -p "$HOMELAB_ROOT/data"
+mkdir -p "$HOMELAB_ROOT/media/movies"
+mkdir -p "$HOMELAB_ROOT/media/tv"
+mkdir -p "$HOMELAB_ROOT/media/downloads"
 
-deploy_stack() {
-    local stack_dir="$1"
-    local desc="$2"
-    echo -e "${CYAN}--> Desplegando ${BOLD}$desc${NC}..."
-    docker compose --env-file "$ENV_FILE" -f "$SCRIPT_DIR/$stack_dir/docker-compose.yml" up -d --remove-orphans
-    sleep 5
-}
+log_success "  ✓ Directorios creados exitosamente."
 
-deploy_stack "stacks/core" "Core (Portainer, Homepage, DockerProxy)"
-deploy_stack "stacks/secrets" "Secrets (Infisical)"
-deploy_stack "stacks/media" "Media (Jellyfin, Sonarr, Radarr, Prowlarr, Bazarr, qBittorrent)"
-deploy_stack "stacks/productivity" "Productividad (Excalidraw, Stirling-PDF)"
-deploy_stack "stacks/backups" "Backups (Restic)"
+echo ""
 
-# AppFlowy
-echo -e "${CYAN}--> Desplegando ${BOLD}AppFlowy${NC}..."
-if [ -f "$SCRIPT_DIR/stacks/appflowy/install-appflowy.sh" ]; then
-    bash "$SCRIPT_DIR/stacks/appflowy/install-appflowy.sh"
+# =============================================================================
+# [5/8] Copiando archivos de configuración
+# =============================================================================
+log_info "[5/8] Copiando archivos de configuración..."
+
+if [ -d "$DOTFILES_DIR/configs" ]; then
+    cp -r "$DOTFILES_DIR/configs/"* "$HOMELAB_ROOT/data/" 2>/dev/null || true
+    log_success "  ✓ Configuraciones copiadas."
+else
+    log_warn "  ⚠ No hay configuraciones para copiar."
 fi
 
-echo -e "  ${GREEN}✓${NC} Todos los stacks han sido desplegados.\n"
+echo ""
 
-# ------------------------------------------------------------------------------
-# Phase 7: Verify Services
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[7/8]${NC} Verificando estado de los contenedores..."
+# =============================================================================
+# [6/8] Desplegando Stacks de Docker
+# =============================================================================
+log_info "[6/8] Desplegando Stacks de Docker..."
 
-TOTAL_CONTAINERS=0
-RUNNING_CONTAINERS=0
+export HOMELAB_ROOT
+export LAN_IP
 
-echo -e "\n${BOLD}Estado de los servicios:${NC}"
-while IFS='|' read -r name status; do
-    if [ -n "$name" ]; then
-        TOTAL_CONTAINERS=$((TOTAL_CONTAINERS + 1))
-        if echo "$status" | grep -q "Up"; then
-            echo -e "  ${GREEN}✅ $name [$status]${NC}"
-            RUNNING_CONTAINERS=$((RUNNING_CONTAINERS + 1))
-        else
-            echo -e "  ${RED}❌ $name [$status]${NC}"
-        fi
-    fi
-done < <(docker ps --format '{{.Names}}|{{.Status}}')
+cd "$DOTFILES_DIR/stacks/core" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/secrets" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/media" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/productivity" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/reading" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/design" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/finance" && docker compose up -d --remove-orphans
+cd "$DOTFILES_DIR/stacks/appflowy" && docker compose up -d --remove-orphans
 
-echo -e "\n  ${BOLD}Resumen:${NC} $RUNNING_CONTAINERS de $TOTAL_CONTAINERS contenedores corriendo.\n"
+log_success "  ✓ Todos los stacks desplegados."
 
-# ------------------------------------------------------------------------------
-# Phase 8: Generate POST-INSTALL-README.md
-# ------------------------------------------------------------------------------
-echo -e "${CYAN}[8/8]${NC} Generando POST-INSTALL-README.md..."
+echo ""
 
-README_TARGET="$HOMELAB_ROOT/POST-INSTALL-README.md"
-cp "$SCRIPT_DIR/configs/POST-INSTALL-README.template.md" "$README_TARGET"
-sed -i "s/__HOST_IP__/$HOST_IP/g" "$README_TARGET"
-sed -i "s/__APPFLOWY_PASS__/$APPFLOWY_PASS_VAL/g" "$README_TARGET"
-sed -i "s|__HOMELAB_ROOT__|$HOMELAB_ROOT|g" "$README_TARGET"
-sed -i "s|__ENV_FILE__|$ENV_FILE|g" "$README_TARGET"
+# =============================================================================
+# [7/8] Verificando servicios
+# =============================================================================
+log_info "[7/8] Verificando servicios..."
 
-echo -e "  ${GREEN}✓${NC} Archivo generado en: ${BOLD}$README_TARGET${NC}\n"
+sleep 5
 
-END_TIME=$(date +%s)
-DIFF_TIME=$((END_TIME - START_TIME))
+echo ""
+echo "Servicios corriendo:"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -20
 
-echo -e "${GREEN}${BOLD}====================================================${NC}"
-echo -e "${GREEN}${BOLD}     🎉 ¡Instalación Completada Exitosamente! 🎉    ${NC}"
-echo -e "${GREEN}${BOLD}====================================================${NC}"
-echo -e "  Dashboard Homepage: ${CYAN}http://$HOST_IP:3001${NC}"
-echo -e "  Portainer:          ${CYAN}https://$HOST_IP:9443${NC}"
-echo -e "  Infisical:          ${CYAN}http://$HOST_IP:8083${NC}"
-echo -e "  Tiempo transcurrido: ${DIFF_TIME}s"
-echo -e "${GREEN}${BOLD}====================================================${NC}\n"
+echo ""
+
+# =============================================================================
+# [8/8] Resumen final
+# =============================================================================
+log_info "[8/8] Resumen final"
+echo ""
+echo "===================================================="
+echo "          ¡Instalacion completada con éxito!        "
+echo "===================================================="
+echo ""
+echo "Accesos rápidos (reemplaza 127.0.0.1 con tu LAN_IP):"
+echo "  - Portainer:    http://127.0.0.1:3001"
+echo "  - Jellyfin:     http://127.0.0.1:3002"
+echo "  - Sonarr:       http://127.0.0.1:3003"
+echo "  - Radarr:       http://127.0.0.1:3004"
+echo "  - Prowlarr:     http://127.0.0.1:3005"
+echo "  - Bazarr:       http://127.0.0.1:3006"
+echo "  - Transmission: http://127.0.0.1:3007"
+echo "  - Excalidraw:   http://127.0.0.1:3008"
+echo "  - Stirling-PDF: http://127.0.0.1:3009"
+echo "  - Infisical:    http://127.0.0.1:3010"
+echo "  - BookOrbit:    http://127.0.0.1:3011"
+echo "  - Penpot:       http://127.0.0.1:3012"
+echo "  - Securo:       http://127.0.0.1:3013"
+echo "  - AppFlowy:     http://127.0.0.1:3015"
+echo "===================================================="
+echo ""
+echo "Notas importantes:"
+echo "  1. Cambia todas las contraseñ±±±as por defecto"
+echo "  2. Genera secret keys aleatorias para cada servicio"
+echo ""
+echo "Comandos útiles:"
+echo "  docker compose ps              # Ver servicios"
+echo "  docker compose logs -f <svc>   # Ver logs"
+echo "  docker compose down            # Detener stack"
+echo ""
+echo "===================================================="
