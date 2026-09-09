@@ -24,13 +24,13 @@ services:
     container_name: penpot
     restart: unless-stopped
     ports:
-      - "8091:80"
+      - "3012:80"
     volumes:
       - ${HOMELAB_ROOT}/data/design/penpot-assets:/opt/penpot/assets
     environment:
       - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
       - PENPOT_SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
-      - PENPOT_PUBLIC_URI=http://${LAN_IP}:8091
+      - PENPOT_PUBLIC_URI=http://${LAN_IP}:3012
     depends_on:
       penpot-postgres:
         condition: service_healthy
@@ -41,7 +41,7 @@ services:
       - "homepage.name=Penpot"
       - "homepage.description=Plataforma de diseño UI/UX (alternativa a Figma)"
       - "homepage.icon=penpot.svg"
-      - "homepage.href=http://${LAN_IP}:8091"
+      - "homepage.href=http://${LAN_IP}:3012"
 
 networks:
   homelab:

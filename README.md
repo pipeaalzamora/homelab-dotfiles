@@ -11,12 +11,11 @@ homelab-dotfiles/
 ├── stacks/            # Stacks de servicios Docker
 │   ├── core/          # Servicios base
 │   ├── media/         # Multimedia (Jellyfin, Sonarr, Radarr, etc.)
-│   ├── productivity/  # Productividad (Excalidraw, Stirling-PDF)
-│   ├── appflowy/      # Notas (AppFlowy-Cloud)
+│   ├── productivity/  # Productividad (Excalidraw, Stirling-PDF, AppFlowy)
 │   ├── secrets/       # Gestión de secretos (Infisical)
 │   ├── reading/       # Lectura (BookOrbit)
 │   ├── design/        # Diseño UI/UX (Penpot)
-│   └── finance/       # Finanzas personales (Securo) ⭐ NUEVO
+│   └── finance/       # Finanzas personales (Securo)
 ├── install.sh         # Script de instalación Linux/macOS
 ├── install.ps1        # Script de instalación Windows
 └── install-local.sh   # Instalació±±±n local (desarrollo)
@@ -25,35 +24,37 @@ homelab-dotfiles/
 ## Servicios por Stack
 
 ### Core (`stacks/core/`)
-- Portainer
-- Docker Socket Proxy (para Homepage)
+- Portainer (puertos 3000-3001)
+- Docker Socket Proxy (interno, sin puerto expuesto)
 
 ### Media (`stacks/media/`)
-- Jellyfin (con aceleració±±±n GPU)
-- Sonarr
-- Radarr
-- Prowlarr
-- Bazarr
-- Transmission
+- Jellyfin (3002)
+- Sonarr (3003)
+- Radarr (3004)
+- Prowlarr (3005)
+- Bazarr (3006)
+- Transmission (3007)
 
 ### Productivity (`stacks/productivity/`)
-- Excalidraw (diagramas)
-- Stirling-PDF (herramientas PDF)
+- Excalidraw (3008)
+- Stirling-PDF (3009)
 
-### AppFlowy (`stacks/appflowy/`)
-- AppFlowy-Cloud (notas self-hosted)
+### Productivity (`stacks/appflowy/`)
+- AppFlowy HTTP (3015)
+- AppFlowy HTTPS (3016)
 
 ### Secrets (`stacks/secrets/`)
-- Infisical (gestió±±±n centralizada de secretos con PostgreSQL + Redis)
+- Infisical (3010)
 
 ### Reading (`stacks/reading/`)
-- BookOrbit (biblioteca de ebooks, audiobooks, cómics y PDFs)
+- BookOrbit (3011)
 
 ### Design (`stacks/design/`)
-- Penpot (plataforma de diseño UI/UX open-source)
+- Penpot (3012)
 
-### Finance (`stacks/finance/`) ⭐ NUEVO
-- Securo (gestor de finanzas personales con bank sync opcional, presupuestos, metas, inversiones)
+### Finance (`stacks/finance/`)
+- Securo Frontend (3013)
+- Securo Backend API (3014)
 
 ## Acceso a Servicios
 
@@ -61,15 +62,23 @@ Todos los servicios están disponibles en `http://${LAN_IP}:${PUERTO}`:
 
 | Servicio | Puerto | URL |
 |----------|--------|-----|
-| Portainer | 8081 | `http://${LAN_IP}:8081` |
-| Jellyfin | 8096 | `http://${LAN_IP}:8096` |
-| Excalidraw | 8084 | `http://${LAN_IP}:8084` |
-| Stirling-PDF | 8085 | `http://${LAN_IP}:8085` |
-| AppFlowy | 8095 | `http://${LAN_IP}:8095` |
-| Infisical | 8087 | `http://${LAN_IP}:8087` |
-| BookOrbit | 8090 | `http://${LAN_IP}:8090` |
-| Penpot | 8091 | `http://${LAN_IP}:8091` |
-| Securo | 8092 | `http://${LAN_IP}:8092` |
+| Portainer (API) | 3000 | `http://${LAN_IP}:3000` |
+| Portainer (UI) | 3001 | `http://${LAN_IP}:3001` |
+| Jellyfin | 3002 | `http://${LAN_IP}:3002` |
+| Sonarr | 3003 | `http://${LAN_IP}:3003` |
+| Radarr | 3004 | `http://${LAN_IP}:3004` |
+| Prowlarr | 3005 | `http://${LAN_IP}:3005` |
+| Bazarr | 3006 | `http://${LAN_IP}:3006` |
+| Transmission | 3007 | `http://${LAN_IP}:3007` |
+| Excalidraw | 3008 | `http://${LAN_IP}:3008` |
+| Stirling-PDF | 3009 | `http://${LAN_IP}:3009` |
+| Infisical | 3010 | `http://${LAN_IP}:3010` |
+| BookOrbit | 3011 | `http://${LAN_IP}:3011` |
+| Penpot | 3012 | `http://${LAN_IP}:3012` |
+| Securo Frontend | 3013 | `http://${LAN_IP}:3013` |
+| Securo Backend API | 3014 | `http://${LAN_IP}:3014` |
+| AppFlowy HTTP | 3015 | `http://${LAN_IP}:3015` |
+| AppFlowy HTTPS | 3016 | `http://${LAN_IP}:3016` |
 
 ## Instalació±±±n
 
@@ -106,13 +115,13 @@ El archivo `env/.env.example` contiene las variables necesarias:
 
 ## Eliminados (Agosto 2026)
 
-En la consolidació±±±n de agosto 2026 se eliminaron los siguientes servicios del core:
+En la consolidació±±±n de agosto 2026 se eliminaron los siguientes servicios:
 - Restic (backups)
 - Nginx Proxy Manager
 - AdGuard Home
 - Netdata
-
-Tambié±± ±n se eliminaron stacks completos: dev, finance (Facto), knowledge, personal, security.
+- Authelia (SSO)
+- Stacks completos: dev, finance (Facto), knowledge, personal, security
 
 ## Seguridad
 
@@ -143,6 +152,8 @@ docker compose down
 - [BookOrbit](https://github.com/bookorbit/bookorbit) - Plataforma de lectura self-hosted
 - [Penpot](https://penpot.app/) - Plataforma de diseño UI/UX open-source
 - [Securo](https://github.com/securo-finance/securo) - Gestor de finanzas personales self-hosted
+- [AppFlowy](https://github.com/AppFlowyIO/AppFlowy-Cloud) - Notas self-hosted
+- [Infisical](https://github.com/Infisical/infisical) - Gestió±±±n de secretos
 - [Servers@Home](https://wiki.serversatho.me/) - Guí±± ±as de TrueNAS y Docker
 
 ---

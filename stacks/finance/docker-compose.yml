@@ -43,8 +43,8 @@ services:
       - DATABASE_URL=postgresql://securo:securo_db_password_change_me@securo-postgres/securo
       - REDIS_URL=redis://securo-redis:6379
       - SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
-      - FRONTEND_URL=http://${LAN_IP}:8092
-      - BACKEND_URL=http://${LAN_IP}:8093
+      - FRONTEND_URL=http://${LAN_IP}:3013
+      - BACKEND_URL=http://${LAN_IP}:3014
     depends_on:
       securo-postgres:
         condition: service_healthy
@@ -58,9 +58,9 @@ services:
     container_name: securo-frontend
     restart: unless-stopped
     ports:
-      - "8092:3000"
+      - "3013:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://${LAN_IP}:8093
+      - NEXT_PUBLIC_API_URL=http://${LAN_IP}:3014
     depends_on:
       - securo-backend
     networks:
@@ -70,7 +70,7 @@ services:
       - "homepage.name=Securo"
       - "homepage.description=Gestió±±±n de finanzas personales (presupuestos, bank sync, inversiones)"
       - "homepage.icon=securo.svg"
-      - "homepage.href=http://${LAN_IP}:8092"
+      - "homepage.href=http://${LAN_IP}:3013"
 
   securo-celery-worker:
     image: ghcr.io/securo-finance/securo-backend:0.14.3

@@ -1,56 +1,40 @@
-# =============================================================
-# Stack: PRODUCTIVITY
-# Excalidraw · Stirling-PDF
-# Herramientas de productividad local-first
-# https://github.com/excalidraw/excalidraw
-# https://github.com/Stirling-Tools/stirling-pdf
-# =============================================================
-
-networks:
-  homelab:
-    external: true
+version: '3.8'
 
 services:
-
-  # -----------------------------------------------------------
-  # Excalidraw — pizarra / diagramas a mano alzada
-  # 100% client-side: no guarda nada en el servidor.
-  # Puerto interno: 80 · UI local: 127.0.0.1:8084
-  # -----------------------------------------------------------
   excalidraw:
     image: excalidraw/excalidraw:latest
     container_name: excalidraw
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8084:80"
+      - "3008:80"
     networks:
       - homelab
+    labels:
+      - "homepage.group=Productivity"
+      - "homepage.name=Excalidraw"
+      - "homepage.description=Herramienta de diagramas y pizarra blanca"
+      - "homepage.icon=excalidraw.svg"
+      - "homepage.href=http://${LAN_IP}:3008"
 
-  # -----------------------------------------------------------
-  # Stirling-PDF — suite de manipulación de PDF self-hosted
-  # Puerto interno: 8080 · UI local: 127.0.0.1:8085
-  # -----------------------------------------------------------
   stirling-pdf:
-    image: stirlingtools/stirling-pdf:latest
+    image: frooodle/s-pdf:latest
     container_name: stirling-pdf
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8085:8080"
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      UMASK: "022"
-      TZ: ${TZ:-America/Santiago}
-      DOCKER_ENABLE_SECURITY: "false"
-      SYSTEM_DEFAULTLOCALE: es-ES
-      UI_APPNAME: Stirling-PDF
-      UI_HOMEDESCRIPTION: Herramientas PDF locales
-      SYSTEM_MAXFILESIZE: "100"
-      # OCR opcional: idiomas extra separados por coma
-      # TESSERACT_LANGS: "spa,eng"
+      - "3009:3000"
     volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/stirling-pdf/data:/usr/share/tessdata
-      - ${HOMELAB_ROOT:-/srv}/data/stirling-pdf/config:/configs
-      - ${HOMELAB_ROOT:-/srv}/data/stirling-pdf/custom:/customFiles
+      - ${HOMELAB_ROOT}/data/stirling-pdf:/usr/share/tessdata
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
     networks:
       - homelab
+    labels:
+      - "homepage.group=Productivity"
+      - "homepage.name=Stirling-PDF"
+      - "homepage.description=Herramientas PDF (convertir, editar, firmar)"
+      - "homepage.icon=stirling-pdf.svg"
+      - "homepage.href=http://${LAN_IP}:3009"
+
+networks:
+  homelab:
+    external: true

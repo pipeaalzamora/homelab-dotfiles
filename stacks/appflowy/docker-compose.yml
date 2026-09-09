@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  appflowy-postgres:
+    image: postgres:15-alpine
+    container_name: appflowy-postgres
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/appflowy/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=appflowy
+      - POSTGRES_USER=appflowy
+      - POSTGRES_PASSWORD=appflowy_password_change_me
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appflowy -d appflowy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appflowy-server:
+    image: ghcr.io/appflowy/flowy-server:latest
+    container_name: appflowy-server
+    restart: unless-stopped
+    ports:
+      - "3015:8095"
+      - "3016:8447"
+    volumes:
+      - ${HOMELAB_ROOT}/data/appflowy/server:/app_data
+    environment:
+      - DATABASE_URL=postgresql://appflowy:appflowy_password_change_me@appflowy-postgres/appflowy
+      - APPFLOWY_SERVER_ADMIN_EMAIL=admin@homelab.local
+      - APPFLOWY_SERVER_ADMIN_PASSWORD=appflowy_admin_password_change_me
+      - APPFLOWY_SERVER_ADMIN_OPENID_SIGN_IN_ENABLED=false
+    depends_on:
+      appflowy-postgres:
+        condition: service_healthy
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Productivity"
+      - "homepage.name=AppFlowy"
+      - "homepage.description=Notas y documentos self-hosted (alternativa a Notion)"
+      - "homepage.icon=appflowy.svg"
+      - "homepage.href=http://${LAN_IP}:3015"
+
+networks:
+  homelab:
+    external: true

@@ -6,12 +6,12 @@ services:
     container_name: bookorbit
     restart: unless-stopped
     ports:
-      - "8090:8080"
+      - "3011:8080"
     volumes:
       - ${HOMELAB_ROOT}/data/reading/bookorbit:/app/data
     environment:
-      - PUID=1000
-      - PGID=1000
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
     networks:
       - homelab
     labels:
@@ -19,7 +19,7 @@ services:
       - "homepage.name=BookOrbit"
       - "homepage.description=Biblioteca de lectura (ebooks, audiobooks, cómics)"
       - "homepage.icon=book-open.svg"
-      - "homepage.href=http://${LAN_IP}:8090"
+      - "homepage.href=http://${LAN_IP}:3011"
 
 networks:
   homelab:

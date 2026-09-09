@@ -1,181 +1,149 @@
-# =============================================================
-# Stack: MEDIA
-# Jellyfin · Jellyseerr · Sonarr · Radarr · Prowlarr · Bazarr · qBittorrent
-# Streaming automático local para uso familiar
-# =============================================================
+version: '3.8'
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "3002:8096"
+    volumes:
+      - ${HOMELAB_ROOT}/data/jellyfin/config:/config
+      - ${HOMELAB_ROOT}/data/jellyfin/cache:/cache
+      - ${HOMELAB_ROOT}/media:/media:ro
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - 44  # video
+      - 990  # render
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Media"
+      - "homepage.name=Jellyfin"
+      - "homepage.description=Servidor de multimedia (pelí±± ±culas, series, música)"
+      - "homepage.icon=jellyfin.svg"
+      - "homepage.href=http://${LAN_IP}:3002"
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    ports:
+      - "3003:8989"
+    volumes:
+      - ${HOMELAB_ROOT}/data/sonarr:/config
+      - ${HOMELAB_ROOT}/media/tv:/media/tv
+      - ${HOMELAB_ROOT}/media/downloads:/media/downloads
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Santiago}
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Media"
+      - "homepage.name=Sonarr"
+      - "homepage.description=Automatizació±±±n de series (TV)"
+      - "homepage.icon=sonarr.svg"
+      - "homepage.href=http://${LAN_IP}:3003"
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    ports:
+      - "3004:7878"
+    volumes:
+      - ${HOMELAB_ROOT}/data/radarr:/config
+      - ${HOMELAB_ROOT}/media/movies:/media/movies
+      - ${HOMELAB_ROOT}/media/downloads:/media/downloads
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Santiago}
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Media"
+      - "homepage.name=Radarr"
+      - "homepage.description=Automatizació±±±n de pelí±± ±culas"
+      - "homepage.icon=radarr.svg"
+      - "homepage.href=http://${LAN_IP}:3004"
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    ports:
+      - "3005:9696"
+    volumes:
+      - ${HOMELAB_ROOT}/data/prowlarr:/config
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Santiago}
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Media"
+      - "homepage.name=Prowlarr"
+      - "homepage.description=Í± ±ndice de torrents (Sonarr/Radarr)"
+      - "homepage.icon=prowlarr.svg"
+      - "homepage.href=http://${LAN_IP}:3005"
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    ports:
+      - "3006:6767"
+    volumes:
+      - ${HOMELAB_ROOT}/data/bazarr:/config
+      - ${HOMELAB_ROOT}/media/movies:/media/movies
+      - ${HOMELAB_ROOT}/media/tv:/media/tv
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Santiago}
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Media"
+      - "homepage.name=Bazarr"
+      - "homepage.description=Subtí±± ±tulos para Sonarr/Radarr"
+      - "homepage.icon=bazarr.svg"
+      - "homepage.href=http://${LAN_IP}:3006"
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    restart: unless-stopped
+    ports:
+      - "3007:8080"
+      - "51413:51413"
+      - "51413:51413/udp"
+    volumes:
+      - ${HOMELAB_ROOT}/data/transmission:/config
+      - ${HOMELAB_ROOT}/media/downloads:/media/downloads
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Santiago}
+      - USER=${TRANSMISSION_USER:-admin}
+      - PASS=${TRANSMISSION_PASS:-admin}
+    networks:
+      - homelab
+    labels:
+      - "homepage.group=Media"
+      - "homepage.name=Transmission"
+      - "homepage.description=Cliente de torrents"
+      - "homepage.icon=transmission.svg"
+      - "homepage.href=http://${LAN_IP}:3007"
 
 networks:
   homelab:
     external: true
-
-services:
-
-  # -----------------------------------------------------------
-  # Jellyfin — Servidor de streaming personal
-  # Puerto: 8096
-  # -----------------------------------------------------------
-  jellyfin:
-    image: linuxserver/jellyfin:latest
-    container_name: jellyfin
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-      # JELLYFIN_PublishedServerUrl: https://media.tudominio.com  # Descomentar en producción
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/jellyfin/config:/config
-      - ${HOMELAB_ROOT:-/srv}/data/jellyfin/cache:/cache
-      - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies:ro
-      - ${HOMELAB_ROOT:-/srv}/media/series:/data/series:ro
-      - ${HOMELAB_ROOT:-/srv}/media/music:/data/music:ro
-    # Aceleración de hardware (solo Linux/macOS)
-    # En Windows, Docker Desktop no soporta /dev/dri
-    # Descomentar solo en Linux:
-    # devices:
-    #   - /dev/dri:/dev/dri
-    # group_add:
-    #   - "44"   # video
-    #   - "990"  # render
-    ports:
-      - "8096:8096"
-    networks:
-      - homelab
-
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    restart: unless-stopped
-    environment:
-      LOG_LEVEL: info
-      TZ: ${TZ:-America/Santiago}
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/jellyseerr/config:/app/config
-    ports:
-      - "5055:5055"
-    networks:
-      - homelab
-
-  # -----------------------------------------------------------
-  # Sonarr — Descarga automática de series
-  # Puerto: 8989
-  # -----------------------------------------------------------
-  sonarr:
-    image: linuxserver/sonarr:latest
-    container_name: sonarr
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/sonarr/config:/config
-      - ${HOMELAB_ROOT:-/srv}/media/series:/data/series
-      - ${HOMELAB_ROOT:-/srv}/media/downloads:/data/downloads
-    ports:
-      - "127.0.0.1:8989:8989"
-    networks:
-      - homelab
-
-  # -----------------------------------------------------------
-  # Radarr — Descarga automática de películas
-  # Puerto: 7878
-  # Fix conocido: deshabilitar IPv6 si falla la conexión
-  # -----------------------------------------------------------
-  radarr:
-    image: linuxserver/radarr:latest
-    container_name: radarr
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-    # Deshabilitar IPv6 si el upstream IPv6 está roto
-    sysctls:
-      net.ipv6.conf.all.disable_ipv6: 1
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/radarr/config:/config
-      - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies
-      - ${HOMELAB_ROOT:-/srv}/media/downloads:/data/downloads
-    ports:
-      - "127.0.0.1:7878:7878"
-    networks:
-      - homelab
-
-  # -----------------------------------------------------------
-  # Prowlarr — Indexador central para Sonarr/Radarr
-  # Puerto: 9696
-  # -----------------------------------------------------------
-  prowlarr:
-    image: linuxserver/prowlarr:latest
-    container_name: prowlarr
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/prowlarr/config:/config
-    ports:
-      - "127.0.0.1:9696:9696"
-    networks:
-      - homelab
-
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    restart: unless-stopped
-    environment:
-      LOG_LEVEL: info
-      LOG_HTML: "false"
-      CAPTCHA_SOLVER: none
-      TZ: ${TZ:-America/Santiago}
-    ports:
-      - "127.0.0.1:8191:8191"
-    networks:
-      - homelab
-
-  # -----------------------------------------------------------
-  # Bazarr — Descarga automática de subtítulos
-  # Puerto: 6767
-  # -----------------------------------------------------------
-  bazarr:
-    image: linuxserver/bazarr:latest
-    container_name: bazarr
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/bazarr/config:/config
-      - ${HOMELAB_ROOT:-/srv}/media/movies:/data/movies
-      - ${HOMELAB_ROOT:-/srv}/media/series:/data/series
-    ports:
-      - "127.0.0.1:6767:6767"
-    networks:
-      - homelab
-
-  # -----------------------------------------------------------
-  # qBittorrent — Cliente BitTorrent
-  # UI local: http://127.0.0.1:8081
-  # -----------------------------------------------------------
-  qbittorrent:
-    image: linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: ${TZ:-America/Santiago}
-      WEBUI_PORT: 8080
-      TORRENTING_PORT: 51413
-    volumes:
-      - ${HOMELAB_ROOT:-/srv}/data/qbittorrent/config:/config
-      - ${HOMELAB_ROOT:-/srv}/media/downloads:/data/downloads
-    ports:
-      - "127.0.0.1:8081:8080"
-      - "51413:51413"
-      - "51413:51413/udp"
-    networks:
-      - homelab
