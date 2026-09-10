@@ -1,50 +1,111 @@
-version: '3.8'
-
 services:
-  appflowy-postgres:
-    image: postgres:15-alpine
-    container_name: appflowy-postgres
+  postgres:
     restart: unless-stopped
-    volumes:
-      - ${HOMELAB_ROOT}/data/appflowy/postgres:/var/lib/postgresql/data
+    image: pgvector/pgvector:pg16
     environment:
-      - POSTGRES_DB=appflowy
       - POSTGRES_USER=appflowy
-      - POSTGRES_PASSWORD=appflowy_password_change_me
+      - POSTGRES_DB=appflowy
+      - POSTGRES_PASSWORD=nRnn826pgqCKdmrkUyHbugh9e8aN7pnt9k57ddPQmkj
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
     networks:
-      - homelab
+      - appflowy_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appflowy -d appflowy"]
-      interval: 10s
+      test: ["CMD", "pg_isready", "-U", "appflowy", "-d", "appflowy"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 12
 
-  appflowy-server:
-    image: ghcr.io/appflowy/flowy-server:latest
-    container_name: appflowy-server
+  redis:
+    restart: unless-stopped
+    image: redis:7-alpine
+    networks:
+      - appflowy_net
+
+  minio:
+    restart: unless-stopped
+    image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadminsecret123
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - appflowy_net
+
+  gotrue:
+    image: appflowyinc/gotrue:latest
     restart: unless-stopped
     ports:
-      - "3015:8095"
-      - "3016:8447"
-    volumes:
-      - ${HOMELAB_ROOT}/data/appflowy/server:/app_data
+      - "9999:9999"
     environment:
-      - DATABASE_URL=postgresql://appflowy:appflowy_password_change_me@appflowy-postgres/appflowy
-      - APPFLOWY_SERVER_ADMIN_EMAIL=admin@homelab.local
-      - APPFLOWY_SERVER_ADMIN_PASSWORD=appflowy_admin_password_change_me
-      - APPFLOWY_SERVER_ADMIN_OPENID_SIGN_IN_ENABLED=false
+      GOTRUE_ADMIN_EMAIL: admin@homelab.local
+      GOTRUE_ADMIN_PASSWORD: nRnn826pgqCKdmrkUyHbugh9e8aN7pnt9k57ddPQmkj
+      GOTRUE_JWT_SECRET: JssAojjWYw4lu5a5nsmEWoqYoHCQuxaBe6YFhAE4eH0
+      GOTRUE_JWT_EXP: "7200"
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_SITE_URL: appflowy-flutter://
+      API_EXTERNAL_URL: http://192.168.1.2:9999
+      DATABASE_URL: postgresql://appflowy:nRnn826pgqCKdmrkUyHbugh9e8aN7pnt9k57ddPQmkj@postgres/appflowy?search_path=auth
+      GOTRUE_DATABASE_URL: postgresql://appflowy:nRnn826pgqCKdmrkUyHbugh9e8aN7pnt9k57ddPQmkj@postgres/appflowy?search_path=auth
+      PORT: "9999"
+      GOTRUE_URI_ALLOW_LIST: "**"
+      GOTRUE_JWT_ADMIN_GROUP_NAME: supabase_admin
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
     depends_on:
-      appflowy-postgres:
+      postgres:
         condition: service_healthy
     networks:
-      - homelab
-    labels:
-      - "homepage.group=Productivity"
-      - "homepage.name=AppFlowy"
-      - "homepage.description=Notas y documentos self-hosted (alternativa a Notion)"
-      - "homepage.icon=appflowy.svg"
-      - "homepage.href=http://${LAN_IP}:3015"
+      - appflowy_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:9999/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  appflowy_cloud:
+    restart: unless-stopped
+    image: appflowyinc/appflowy_cloud:0.16.3
+    ports:
+      - "8000:8000"
+    environment:
+      - APPFLOWY_ENVIRONMENT=development
+      - APPFLOWY_BASE_URL=http://192.168.1.2:8000
+      - APPFLOWY_DATABASE_URL=postgresql://appflowy:nRnn826pgqCKdmrkUyHbugh9e8aN7pnt9k57ddPQmkj@postgres/appflowy
+      - APPFLOWY_REDIS_URI=redis://redis:6379
+      - APPFLOWY_S3_USE_MINIO=true
+      - APPFLOWY_S3_MINIO_URL=http://minio:9000
+      - APPFLOWY_S3_ACCESS_KEY=minioadmin
+      - APPFLOWY_S3_SECRET_KEY=minioadminsecret123
+      - APPFLOWY_S3_BUCKET=appflowy
+      - APPFLOWY_S3_CREATE_BUCKET=true
+      - APPFLOWY_ACCESS_CONTROL=false
+      - RUST_LOG=info
+      - APPFLOWY_WEB_URL=http://192.168.1.2:8080
+      - APPFLOWY_GOTRUE_JWT_SECRET=JssAojjWYw4lu5a5nsmEWoqYoHCQuxaBe6YFhAE4eH0
+      - APPFLOWY_GOTRUE_BASE_URL=http://gotrue:9999
+      - APPFLOWY_WS_BASE_URL=ws://192.168.1.2:8000/ws/v2
+    depends_on:
+      gotrue:
+        condition: service_healthy
+    networks:
+      - appflowy_net
+
+  appflowy_web:
+    restart: unless-stopped
+    image: appflowyinc/appflowy_web:0.16.3
+    ports:
+      - "8080:80"
+    environment:
+      - APPFLOWY_BASE_URL=http://192.168.1.2:8000
+      - APPFLOWY_GOTRUE_BASE_URL=http://192.168.1.2:9999
+      - APPFLOWY_WS_BASE_URL=ws://192.168.1.2:8000/ws/v2
+    depends_on:
+      - appflowy_cloud
+    networks:
+      - appflowy_net
 
 networks:
-  homelab:
-    external: true
+  appflowy_net:
+    driver: bridge

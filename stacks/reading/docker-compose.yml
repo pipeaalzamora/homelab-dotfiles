@@ -1,25 +1,54 @@
-version: '3.8'
-
 services:
   bookorbit:
     image: ghcr.io/bookorbit/bookorbit:latest
     container_name: bookorbit
+    init: true
     restart: unless-stopped
     ports:
-      - "3011:8080"
-    volumes:
-      - ${HOMELAB_ROOT}/data/reading/bookorbit:/app/data
+      - "3020:3000"
     environment:
-      - PUID=${PUID:-1000}
-      - PGID=${PGID:-1000}
+      NODE_ENV: production
+      PORT: 3000
+      APP_URL: http://192.168.1.2:3020
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: bookorbit
+      POSTGRES_PASSWORD: ae4df635212660504655979ac9f0f999aefd58e2f3854406
+      POSTGRES_DB: bookorbit
+      JWT_SECRET: 6247109f3195548d5c6f5ae962ea674bf972ad1f22e5c4994c5ab53f2c2f71e0
+      SETUP_BOOTSTRAP_TOKEN: 2baf710184c1581a60df9b69abb93bcb
+      LIBRARY_BROWSE_ROOT: /books
+      NODE_MAX_OLD_SPACE_SIZE: 2048
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - /home/pipeaalzamora/homelab/media:/books
+      - /home/pipeaalzamora/homelab/data/reading/bookorbit:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - homelab
-    labels:
-      - "homepage.group=Reading"
-      - "homepage.name=BookOrbit"
-      - "homepage.description=Biblioteca de lectura (ebooks, audiobooks, cómics)"
-      - "homepage.icon=book-open.svg"
-      - "homepage.href=http://${LAN_IP}:3011"
+
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: bookorbit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bookorbit
+      POSTGRES_PASSWORD: ae4df635212660504655979ac9f0f999aefd58e2f3854406
+      POSTGRES_DB: bookorbit
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /home/pipeaalzamora/homelab/data/reading/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookorbit -d bookorbit"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - homelab
 
 networks:
   homelab:
