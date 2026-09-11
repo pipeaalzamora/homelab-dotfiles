@@ -1,0 +1,29 @@
+services:
+  baserow:
+    image: baserow/baserow:latest
+    container_name: baserow
+    restart: unless-stopped
+    ports:
+      - "3010:80"
+    volumes:
+      - ${HOMELAB_ROOT}/data/baserow:/baserow/data
+    environment:
+      - BASEROW_PUBLIC_URL=http://${LAN_IP}:3010
+      - BASEROW_JWT_SECRET=change_this_to_a_random_64_char_secret_key_please
+      - BASEROW_EMAIL_SMTP_HOST=
+      - BASEROW_EMAIL_SMTP_PORT=
+      - BASEROW_EMAIL_SMTP_USER=
+      - BASEROW_EMAIL_SMTP_PASSWORD=
+      - BASEROW_EMAIL_SMTP_USE_TLS=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
