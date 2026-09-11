@@ -1,3 +1,5 @@
+name: nextcloud-aio
+
 services:
   excalidraw:
     image: excalidraw/excalidraw:latest
