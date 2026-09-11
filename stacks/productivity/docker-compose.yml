@@ -1,4 +1,4 @@
-name: nextcloud-aio
+name: nextcloud_aio
 
 services:
   excalidraw:
