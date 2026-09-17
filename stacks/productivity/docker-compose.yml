@@ -2,7 +2,7 @@ services:
   vikunja:
     image: vikunja/vikunja:2.6.0
     environment:
-      VIKUNJA_SERVICE_PUBLICURL: http://192.168.1.2:3456/
+      VIKUNJA_SERVICE_PUBLICURL: http://${LAN_IP}:3456/
       VIKUNJA_SERVICE_SECRET: aad48f92ab06542dab95d98d33c892024e6e976b90924dfa8f59d77cf1ee1b28
       VIKUNJA_DATABASE_PATH: /db/vikunja.db
     ports:
@@ -77,7 +77,7 @@ services:
     networks:
       - homelab
     environment:
-      - PENPOT_PUBLIC_URI=http://192.168.1.2:9001
+      - PENPOT_PUBLIC_URI=http://${LAN_IP}:9001
       - PENPOT_FLAGS=disable-email-verification disable-secure-session-cookies
 
   penpot-backend:
@@ -91,7 +91,7 @@ services:
     networks:
       - homelab
     environment:
-      - PENPOT_PUBLIC_URI=http://192.168.1.2:9001
+      - PENPOT_PUBLIC_URI=http://${LAN_IP}:9001
       - PENPOT_SECRET_KEY=zL8mxwhERglB9is1CBJdqRmNrIiOS4PnugpZbn1fGgtMrOH5ROYqXQRxI_T9iv2_DDNZo-ViZlUGY2dHREWhIg
       - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
       - PENPOT_DATABASE_USERNAME=penpot
@@ -109,7 +109,7 @@ services:
     networks:
       - homelab
     environment:
-      - PENPOT_PUBLIC_URI=http://192.168.1.2:9001
+      - PENPOT_PUBLIC_URI=http://${LAN_IP}:9001
       - PENPOT_REDIS_URI=redis://penpot-valkey/0
 
   penpot-postgres:

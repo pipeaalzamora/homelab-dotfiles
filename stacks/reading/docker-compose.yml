@@ -9,7 +9,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      APP_URL: http://192.168.1.2:3020
+      APP_URL: http://${LAN_IP}:3020
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: bookorbit
