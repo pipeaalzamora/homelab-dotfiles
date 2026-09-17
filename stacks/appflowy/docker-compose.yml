@@ -85,7 +85,7 @@ services:
       - APPFLOWY_WEB_URL=http://${LAN_IP}:8080
       - APPFLOWY_GOTRUE_JWT_SECRET=JssAojjWYw4lu5a5nsmEWoqYoHCQuxaBe6YFhAE4eH0
       - APPFLOWY_GOTRUE_BASE_URL=http://gotrue:9999
-      - APPFLOWY_WS_BASE_URL=ws://192.168.1.2:8000/ws/v2
+      - APPFLOWY_WS_BASE_URL=ws://${LAN_IP}:8000/ws/v2
     depends_on:
       gotrue:
         condition: service_healthy
@@ -100,7 +100,7 @@ services:
     environment:
       - APPFLOWY_BASE_URL=http://${LAN_IP}:8000
       - APPFLOWY_GOTRUE_BASE_URL=http://${LAN_IP}:9999
-      - APPFLOWY_WS_BASE_URL=ws://192.168.1.2:8000/ws/v2
+      - APPFLOWY_WS_BASE_URL=ws://${LAN_IP}:8000/ws/v2
     depends_on:
       - appflowy_cloud
     networks:
