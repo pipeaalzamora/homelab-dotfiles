@@ -8,8 +8,8 @@ services:
     volumes:
       - ${HOMELAB_ROOT}/data/baserow:/baserow/data
     environment:
-      - BASEROW_PUBLIC_URL=http://${LAN_IP}:3010
-      - BASEROW_JWT_SECRET=change_this_to_a_random_64_char_secret_key_please
+      - BASEROW_PUBLIC_URL=http://192.168.1.2:3010
+      - BASEROW_JWT_SECRET=ed3cda6c2c586329e6711daf2879807e5ac19bccab8a6ee591fb42f639a12a27
       - BASEROW_EMAIL_SMTP_HOST=
       - BASEROW_EMAIL_SMTP_PORT=
       - BASEROW_EMAIL_SMTP_USER=

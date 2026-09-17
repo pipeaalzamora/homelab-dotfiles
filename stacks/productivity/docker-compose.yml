@@ -1,6 +1,19 @@
-name: nextcloud_aio
-
 services:
+  vikunja:
+    image: vikunja/vikunja:2.6.0
+    environment:
+      VIKUNJA_SERVICE_PUBLICURL: http://192.168.1.2:3456/
+      VIKUNJA_SERVICE_SECRET: aad48f92ab06542dab95d98d33c892024e6e976b90924dfa8f59d77cf1ee1b28
+      VIKUNJA_DATABASE_PATH: /db/vikunja.db
+    ports:
+      - 3456:3456
+    volumes:
+      - ${HOMELAB_ROOT}/data/vikunja/files:/app/vikunja/files
+      - ${HOMELAB_ROOT}/data/vikunja/db:/db
+    restart: unless-stopped
+    networks:
+      - homelab
+
   excalidraw:
     image: excalidraw/excalidraw:latest
     container_name: excalidraw
@@ -40,23 +53,94 @@ services:
     image: ghcr.io/nextcloud-releases/all-in-one:latest
     container_name: nextcloud-aio-mastercontainer
     restart: unless-stopped
-    ports:
-      - "81:80"
-      - "8180:8080"
-      - "8444:8443"
     volumes:
       - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
+      - SKIP_DOMAIN_VALIDATION=true
       - APACHE_PORT=11000
       - APACHE_IP_BINDING=0.0.0.0
-      - SKIP_DOMAIN_VALIDATION=true
-      - NEXTCLOUD_DATADIR=/mnt/docker-aio-config/data
+    ports:
+      - "81:80"
+      - "8180:8080"
+      - "8444:8443"
+
+  penpot-frontend:
+    image: "penpotapp/frontend:latest"
+    restart: unless-stopped
+    ports:
+      - "9001:8080"
+    volumes:
+      - ${HOMELAB_ROOT}/data/penpot/assets:/opt/data/assets
+    depends_on:
+      - penpot-backend
+    networks:
+      - homelab
+    environment:
+      - PENPOT_PUBLIC_URI=http://192.168.1.2:9001
+      - PENPOT_FLAGS=disable-email-verification disable-secure-session-cookies
+
+  penpot-backend:
+    image: "penpotapp/backend:latest"
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/penpot/assets:/opt/data/assets
+    depends_on:
+      - penpot-postgres
+      - penpot-valkey
+    networks:
+      - homelab
+    environment:
+      - PENPOT_PUBLIC_URI=http://192.168.1.2:9001
+      - PENPOT_SECRET_KEY=zL8mxwhERglB9is1CBJdqRmNrIiOS4PnugpZbn1fGgtMrOH5ROYqXQRxI_T9iv2_DDNZo-ViZlUGY2dHREWhIg
+      - PENPOT_DATABASE_URI=postgresql://penpot-postgres/penpot
+      - PENPOT_DATABASE_USERNAME=penpot
+      - PENPOT_DATABASE_PASSWORD=penpot
+      - PENPOT_REDIS_URI=redis://penpot-valkey/0
+      - PENPOT_OBJECTS_STORAGE_BACKEND=fs
+      - PENPOT_OBJECTS_STORAGE_FS_DIRECTORY=/opt/data/assets
+      - PENPOT_SMTP_HOST=penpot-mailcatch
+      - PENPOT_SMTP_PORT=1025
+      - PENPOT_SMTP_DEFAULT_FROM=no-reply@penpot.local
+
+  penpot-exporter:
+    image: penpotapp/exporter:latest
+    restart: unless-stopped
+    networks:
+      - homelab
+    environment:
+      - PENPOT_PUBLIC_URI=http://192.168.1.2:9001
+      - PENPOT_REDIS_URI=redis://penpot-valkey/0
+
+  penpot-postgres:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/penpot/db:/var/lib/postgresql/data
+    networks:
+      - homelab
+    environment:
+      - POSTGRES_DB=penpot
+      - POSTGRES_USER=penpot
+      - POSTGRES_PASSWORD=penpot
+
+  penpot-valkey:
+    image: valkey/valkey:8.1
+    restart: unless-stopped
+    networks:
+      - homelab
+
+  penpot-mailcatch:
+    image: sj26/mailcatcher:latest
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
     networks:
       - homelab
 
 volumes:
   nextcloud_aio_mastercontainer:
+    external: true
 
 networks:
   homelab:
