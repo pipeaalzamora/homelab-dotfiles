@@ -1,0 +1,44 @@
+services:
+  tandoor-db:
+    image: postgres:16-alpine
+    container_name: tandoor-db
+    restart: unless-stopped
+    volumes:
+      - ${HOMELAB_ROOT}/data/tandoor/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: djangodb
+      POSTGRES_USER: djangouser
+      POSTGRES_PASSWORD: ${TANDOOR_DB_PASSWORD:-tandoor_secret_db_password}
+    networks:
+      - homelab
+
+  tandoor-web:
+    image: vabene1111/recipes:latest
+    container_name: tandoor-web
+    restart: unless-stopped
+    depends_on:
+      - tandoor-db
+    ports:
+      - "3030:80"
+    volumes:
+      - ${HOMELAB_ROOT}/data/tandoor/mediafiles:/opt/recipes/mediafiles
+      - tandoor_staticfiles:/opt/recipes/staticfiles
+    environment:
+      - SECRET_KEY=${TANDOOR_SECRET_KEY:-change_this_to_a_random_50_char_secret_key_please}
+      - DB_ENGINE=django.db.backends.postgresql
+      - POSTGRES_HOST=tandoor-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=djangouser
+      - POSTGRES_PASSWORD=${TANDOOR_DB_PASSWORD:-tandoor_secret_db_password}
+      - POSTGRES_DB=djangodb
+      - ALLOWED_HOSTS=${LAN_IP:-192.168.1.5},localhost,127.0.0.1,*
+      - TIMEZONE=America/Santiago
+    networks:
+      - homelab
+
+volumes:
+  tandoor_staticfiles:
+
+networks:
+  homelab:
+    external: true
