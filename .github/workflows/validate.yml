@@ -1,0 +1,25 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    env:
+      HOMELAB_ROOT: /tmp/homelab
+      LAN_IP: 127.0.0.1
+      BASEROW_JWT_SECRET: ci
+      VAULTWARDEN_ADMIN_TOKEN: ci
+      TANDOOR_SECRET_KEY: ci
+      TANDOOR_DB_PASSWORD: ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate every docker-compose.yml
+        run: |
+          find stacks -name docker-compose.yml | sort | while read -r f; do
+            echo "::group::$f"
+            docker compose -f "$f" config -q
+            echo "::endgroup::"
+          done
