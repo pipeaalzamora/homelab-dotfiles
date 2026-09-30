@@ -9,18 +9,13 @@ services:
       - ${HOMELAB_ROOT}/data/baserow:/baserow/data
     environment:
       - BASEROW_PUBLIC_URL=http://${LAN_IP}:3010
-      - BASEROW_JWT_SECRET=ed3cda6c2c586329e6711daf2879807e5ac19bccab8a6ee591fb42f639a12a27
-      - BASEROW_EMAIL_SMTP_HOST=
-      - BASEROW_EMAIL_SMTP_PORT=
-      - BASEROW_EMAIL_SMTP_USER=
-      - BASEROW_EMAIL_SMTP_PASSWORD=
-      - BASEROW_EMAIL_SMTP_USE_TLS=false
+      - BASEROW_JWT_SECRET=${BASEROW_JWT_SECRET:?defini BASEROW_JWT_SECRET en .env}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/_health/"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 180s
     networks:
       - homelab
 
