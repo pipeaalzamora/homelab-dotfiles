@@ -1,88 +1,180 @@
 ---
 # =============================================================
 # Homepage — Servicios del homelab
+# Puertos reales según stacks en homelab-dotfiles/stacks/
 # =============================================================
 
 - 🔒 Core:
     - Portainer:
-        href: https://localhost:9443
-        description: Gestión Docker
+        href: http://192.168.1.5:3001
+        description: Gestión de contenedores Docker
         icon: portainer.png
         server: my-docker
         container: portainer
+
+    - Vaultwarden:
+        href: https://192.168.1.5:8443
+        description: Gestor de contraseñas (Bitwarden)
+        icon: vaultwarden.png
+        server: my-docker
+        container: vaultwarden
+
     - Infisical:
-        href: http://localhost:8083
-        description: Gestión de secretos
+        href: http://192.168.1.5:3015
+        description: Gestión de secretos y variables de entorno
         icon: infisical.png
         server: my-docker
-        container: infisical
+        container: infisical-backend
 
 - 🎬 Media:
     - Jellyfin:
-        href: http://localhost:8096
-        description: Streaming personal
+        href: http://192.168.1.5:3002
+        description: Streaming multimedia personal
         icon: jellyfin.png
         server: my-docker
         container: jellyfin
-    - Jellyseerr:
-        href: http://localhost:5055
-        description: Pedidos familiares
-        icon: jellyseerr.png
-        server: my-docker
-        container: jellyseerr
+        widget:
+          type: jellyfin
+          url: http://jellyfin:8096
+          key: # Añade tu API key desde Jellyfin → Dashboard → API Keys
+
     - Sonarr:
-        href: http://localhost:8989
-        description: Series
+        href: http://192.168.1.5:3003
+        description: Automatización de series
         icon: sonarr.png
         server: my-docker
         container: sonarr
+        widget:
+          type: sonarr
+          url: http://sonarr:8989
+          key: # Añade tu API key desde Sonarr → Settings → General
+
     - Radarr:
-        href: http://localhost:7878
-        description: Películas
+        href: http://192.168.1.5:3004
+        description: Automatización de películas
         icon: radarr.png
         server: my-docker
         container: radarr
+        widget:
+          type: radarr
+          url: http://radarr:7878
+          key: # Añade tu API key desde Radarr → Settings → General
+
     - Prowlarr:
-        href: http://localhost:9696
-        description: Indexadores
+        href: http://192.168.1.5:3005
+        description: Indexadores de torrents
         icon: prowlarr.png
         server: my-docker
         container: prowlarr
-    - FlareSolverr:
-        href: http://localhost:8191
-        description: Bypass Cloudflare para Prowlarr
-        icon: flaresolverr.png
-        server: my-docker
-        container: flaresolverr
+        widget:
+          type: prowlarr
+          url: http://prowlarr:9696
+          key: # Añade tu API key desde Prowlarr → Settings → General
+
     - Bazarr:
-        href: http://localhost:6767
-        description: Subtítulos
+        href: http://192.168.1.5:3006
+        description: Subtítulos automáticos
         icon: bazarr.png
         server: my-docker
         container: bazarr
-    - qBittorrent:
-        href: http://localhost:8081
-        description: Torrents
-        icon: qbittorrent.png
+        widget:
+          type: bazarr
+          url: http://bazarr:6767
+          key: # Añade tu API key desde Bazarr → Settings → General
+
+    - Transmission:
+        href: http://192.168.1.5:3007
+        description: Cliente de torrents
+        icon: transmission.png
         server: my-docker
-        container: qbittorrent
+        container: transmission
+        widget:
+          type: transmission
+          url: http://transmission:9091
+          username: admin
+          password: admin
 
 - 📝 Productividad:
-    - Excalidraw:
-        href: http://localhost:8084
-        description: Pizarra y diagramas
-        icon: excalidraw.png
+    - Nextcloud:
+        href: http://192.168.1.5:3011
+        description: Almacenamiento y colaboración en la nube
+        icon: nextcloud.png
         server: my-docker
-        container: excalidraw
-    - Stirling-PDF:
-        href: http://localhost:8085
-        description: Herramientas PDF
-        icon: stirling-pdf.png
-        server: my-docker
-        container: stirling-pdf
+        container: nextcloud
+
     - AppFlowy:
-        href: http://localhost:8095
-        description: Notas y docs (tipo Notion)
+        href: http://192.168.1.5:8080
+        description: Notas y docs colaborativos
         icon: appflowy.png
         server: my-docker
         container: appflowy-appflowy_web-1
+
+    - Vikunja:
+        href: http://192.168.1.5:3456
+        description: Gestión de tareas y proyectos
+        icon: vikunja.png
+        server: my-docker
+        container: vikunja
+        widget:
+          type: vikunja
+          url: http://vikunja:3456
+          key: # Genera un token en Vikunja → Settings → API Tokens
+
+    - Excalidraw:
+        href: http://192.168.1.5:3008
+        description: Pizarra colaborativa y diagramas
+        icon: excalidraw.png
+        server: my-docker
+        container: excalidraw
+
+    - Stirling PDF:
+        href: http://192.168.1.5:3009
+        description: Herramientas para PDFs
+        icon: stirling-pdf.png
+        server: my-docker
+        container: stirling-pdf
+
+    - Penpot:
+        href: http://192.168.1.5:9001
+        description: Diseño UI/UX open source
+        icon: penpot.png
+        server: my-docker
+        container: penpot-frontend
+
+- 📚 Lectura:
+    - Bookorbit:
+        href: http://192.168.1.5:3020
+        description: Biblioteca y gestión de libros
+        icon: https://raw.githubusercontent.com/bookorbit/bookorbit/main/public/logo.png
+        server: my-docker
+        container: bookorbit
+
+    - Readeck:
+        href: http://192.168.1.5:3025
+        description: Guarda y lee artículos (tipo Pocket)
+        icon: https://codeberg.org/readeck/readeck/raw/branch/main/web/static/img/logo.svg
+        server: my-docker
+        container: readeck
+
+- 💰 Finanzas:
+    - Securo:
+        href: http://192.168.1.5:3013
+        description: Gestión de finanzas personales
+        icon: mdi-cash-multiple
+        server: my-docker
+        container: securo-frontend
+
+    - Tandoor:
+        href: http://192.168.1.5:3030
+        description: Recetas y planificación de comidas
+        icon: tandoor.png
+        server: my-docker
+        container: tandoor-web
+
+- 🗄️ Bases de datos:
+    - Baserow:
+        href: http://192.168.1.5:3010
+        description: Base de datos no-code (tipo Airtable)
+        icon: baserow.png
+        server: my-docker
+        container: baserow

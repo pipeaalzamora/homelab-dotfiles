@@ -11,12 +11,6 @@ services:
       - ${HOMELAB_ROOT}/data/portainer:/data
     networks:
       - homelab
-    labels:
-      - "homepage.group=Core"
-      - "homepage.name=Portainer"
-      - "homepage.description=Gestió±±±n de contenedores Docker"
-      - "homepage.icon=docker.svg"
-      - "homepage.href=http://${LAN_IP}:3001"
 
   docker-socket-proxy:
     image: tecnativa/docker-socket-proxy:latest
@@ -36,11 +30,21 @@ services:
       - VOLUMES=1
     networks:
       - homelab
-    labels:
-      - "homepage.group=Core"
-      - "homepage.name=Docker Socket Proxy"
-      - "homepage.description=Proxy seguro para socket de Docker (Homepage)"
-      - "homepage.icon=docker.svg"
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+      - "3100:3000"
+    volumes:
+      - ${HOMELAB_ROOT}/data/homepage:/app/config
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - HOMEPAGE_ALLOWED_HOSTS=${LAN_IP}:3100
+    networks:
+      - homelab
 
 networks:
   homelab:

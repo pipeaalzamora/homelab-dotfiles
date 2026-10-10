@@ -16,10 +16,19 @@ useEqualHeights: true
 layout:
   🔒 Core:
     style: row
-    columns: 2
+    columns: 3
   🎬 Media:
     style: row
-    columns: 8
+    columns: 4
   📝 Productividad:
     style: row
-    columns: 3
+    columns: 4
+  📚 Lectura:
+    style: row
+    columns: 2
+  💰 Finanzas:
+    style: row
+    columns: 2
+  🗄️ Bases de datos:
+    style: row
+    columns: 1

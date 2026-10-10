@@ -1,6 +1,7 @@
 services:
   vikunja:
     image: vikunja/vikunja:2.6.0
+    container_name: vikunja
     environment:
       VIKUNJA_SERVICE_PUBLICURL: http://${LAN_IP}:3456/
       VIKUNJA_SERVICE_SECRET: aad48f92ab06542dab95d98d33c892024e6e976b90924dfa8f59d77cf1ee1b28
@@ -33,7 +34,7 @@ services:
     container_name: stirling-pdf
     restart: unless-stopped
     ports:
-      - "3009:3000"
+      - "3009:8080"
     volumes:
       - ${HOMELAB_ROOT}/data/stirling-pdf/data:/usr/share/tessdata
       - ${HOMELAB_ROOT}/data/stirling-pdf/config:/configs
@@ -41,7 +42,7 @@ services:
     environment:
       - DOCKER_ENABLE_SECURITY=false
     healthcheck:
-      test: "curl -f http://localhost:3000/api/v1/info/status | grep -q 'UP'"
+      test: "curl -f http://localhost:8080/api/v1/info/status"
       interval: 30s
       timeout: 10s
       retries: 3
@@ -49,24 +50,49 @@ services:
     networks:
       - homelab
 
-  nextcloud-aio:
-    image: ghcr.io/nextcloud-releases/all-in-one:latest
-    container_name: nextcloud-aio-mastercontainer
+  nextcloud-db:
+    image: postgres:16-alpine
+    container_name: nextcloud-db
     restart: unless-stopped
     volumes:
-      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${HOMELAB_ROOT}/data/nextcloud/db:/var/lib/postgresql/data
     environment:
-      - SKIP_DOMAIN_VALIDATION=true
-      - APACHE_PORT=11000
-      - APACHE_IP_BINDING=0.0.0.0
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=${NEXTCLOUD_DB_PASSWORD:-nextcloud_secret}
+    networks:
+      - homelab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nextcloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nextcloud:
+    image: nextcloud:29
+    container_name: nextcloud
+    restart: unless-stopped
     ports:
-      - "81:80"
-      - "8180:8080"
-      - "8444:8443"
+      - "3011:80"
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+    volumes:
+      - ${HOMELAB_ROOT}/data/nextcloud/data:/var/www/html
+    environment:
+      - POSTGRES_HOST=nextcloud-db
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=${NEXTCLOUD_DB_PASSWORD:-nextcloud_secret}
+      - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER:-admin}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NEXTCLOUD_ADMIN_PASSWORD:-nextcloud_admin}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${LAN_IP}
+    networks:
+      - homelab
 
   penpot-frontend:
     image: "penpotapp/frontend:latest"
+    container_name: penpot-frontend
     restart: unless-stopped
     ports:
       - "9001:8080"
@@ -82,6 +108,7 @@ services:
 
   penpot-backend:
     image: "penpotapp/backend:latest"
+    container_name: penpot-backend
     restart: unless-stopped
     volumes:
       - ${HOMELAB_ROOT}/data/penpot/assets:/opt/data/assets
@@ -105,15 +132,18 @@ services:
 
   penpot-exporter:
     image: penpotapp/exporter:latest
+    container_name: penpot-exporter
     restart: unless-stopped
     networks:
       - homelab
     environment:
-      - PENPOT_PUBLIC_URI=http://${LAN_IP}:9001
+      - PENPOT_PUBLIC_URI=http://penpot-frontend:8080
       - PENPOT_REDIS_URI=redis://penpot-valkey/0
+      - PENPOT_SECRET_KEY=zL8mxwhERglB9is1CBJdqRmNrIiOS4PnugpZbn1fGgtMrOH5ROYqXQRxI_T9iv2_DDNZo-ViZlUGY2dHREWhIg
 
   penpot-postgres:
     image: postgres:15
+    container_name: penpot-postgres
     restart: unless-stopped
     volumes:
       - ${HOMELAB_ROOT}/data/penpot/db:/var/lib/postgresql/data
@@ -126,21 +156,21 @@ services:
 
   penpot-valkey:
     image: valkey/valkey:8.1
+    container_name: penpot-valkey
     restart: unless-stopped
     networks:
       - homelab
 
   penpot-mailcatch:
     image: sj26/mailcatcher:latest
+    container_name: penpot-mailcatch
     restart: unless-stopped
     ports:
       - "1080:1080"
     networks:
       - homelab
 
-volumes:
-  nextcloud_aio_mastercontainer:
-    external: true
+
 
 networks:
   homelab:

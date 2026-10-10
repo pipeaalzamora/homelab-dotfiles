@@ -1,11 +1,10 @@
 ---
 # =============================================================
-# Homepage — Widgets superiores (info del sistema)
-# Copiar a /srv/data/homepage/config/widgets.yaml
+# Homepage — Widgets superiores
 # Docs: https://gethomepage.dev/widgets/
 # =============================================================
 
-# Logo / saludo a la izquierda
+# Saludo
 - greeting:
     text_size: xl
     text: Homelab — Pipe Edition
@@ -27,10 +26,9 @@
       dateStyle: short
       hourCycle: h23
 
-# Clima local (Open-Meteo, sin API key).
-# Ajusta latitude/longitude a tu ciudad. Ej: Santiago de Chile.
+# Clima — Santiago de Chile (Open-Meteo, sin API key)
 - openmeteo:
-    label: Clima
+    label: Santiago
     latitude: -33.4489
     longitude: -70.6693
     timezone: America/Santiago
