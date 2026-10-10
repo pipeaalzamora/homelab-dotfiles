@@ -36,7 +36,9 @@
         widget:
           type: jellyfin
           url: http://jellyfin:8096
-          key: # Añade tu API key desde Jellyfin → Dashboard → API Keys
+          key: 2efb49d24dfb4a259381bedb4d340d16
+          enableBlocks: true
+          enableNowPlaying: true
 
     - Sonarr:
         href: http://192.168.1.5:3003
@@ -47,7 +49,7 @@
         widget:
           type: sonarr
           url: http://sonarr:8989
-          key: # Añade tu API key desde Sonarr → Settings → General
+          key: 51ffd1c1448a4a1593759d9959e5f492
 
     - Radarr:
         href: http://192.168.1.5:3004
@@ -58,7 +60,7 @@
         widget:
           type: radarr
           url: http://radarr:7878
-          key: # Añade tu API key desde Radarr → Settings → General
+          key: 80b97e46264a431b9404579e227b71ee
 
     - Prowlarr:
         href: http://192.168.1.5:3005
@@ -69,7 +71,7 @@
         widget:
           type: prowlarr
           url: http://prowlarr:9696
-          key: # Añade tu API key desde Prowlarr → Settings → General
+          key: 1534e38b05c149c8b710f0c41698b5e8
 
     - Bazarr:
         href: http://192.168.1.5:3006
@@ -80,7 +82,7 @@
         widget:
           type: bazarr
           url: http://bazarr:6767
-          key: # Añade tu API key desde Bazarr → Settings → General
+          key: 38c777660a1281645dd5fd90101c3ef0
 
     - Transmission:
         href: http://192.168.1.5:3007
@@ -115,10 +117,6 @@
         icon: vikunja.png
         server: my-docker
         container: vikunja
-        widget:
-          type: vikunja
-          url: http://vikunja:3456
-          key: # Genera un token en Vikunja → Settings → API Tokens
 
     - Excalidraw:
         href: http://192.168.1.5:3008

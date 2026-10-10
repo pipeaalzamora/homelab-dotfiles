@@ -44,8 +44,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://securo:securo@securo-postgres/securo
       - REDIS_URL=redis://securo-redis:6379/0
       - SECRET_KEY=change_this_to_a_random_64_char_secret_key_please
-      - FRONTEND_URL=http://${LAN_IP}:3013
-      - BACKEND_URL=http://${LAN_IP}:3014
+      - FRONTEND_URL=http://192.168.1.5:3013
+      - BACKEND_URL=http://192.168.1.5:3014
       - STORAGE_LOCAL_PATH=/app/data/attachments
     depends_on:
       securo-postgres:
@@ -63,7 +63,7 @@ services:
       - "3013:8080"
     environment:
       - BACKEND_URL=http://securo-backend:8000
-      - FRONTEND_URL=http://${LAN_IP}:3013
+      - FRONTEND_URL=http://192.168.1.5:3013
     depends_on:
       - securo-backend
     networks:

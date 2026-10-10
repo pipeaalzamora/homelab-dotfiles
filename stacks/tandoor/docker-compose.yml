@@ -31,7 +31,7 @@ services:
       - POSTGRES_USER=djangouser
       - POSTGRES_PASSWORD=${TANDOOR_DB_PASSWORD:?defini TANDOOR_DB_PASSWORD en .env}
       - POSTGRES_DB=djangodb
-      - ALLOWED_HOSTS=${LAN_IP},localhost,127.0.0.1
+      - ALLOWED_HOSTS=192.168.1.5,localhost,127.0.0.1
       - TIMEZONE=America/Santiago
     networks:
       - homelab

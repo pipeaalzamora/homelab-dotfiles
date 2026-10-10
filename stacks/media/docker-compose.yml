@@ -26,7 +26,7 @@ services:
       - "homepage.name=Jellyfin"
       - "homepage.description=Servidor de multimedia (pelí±± ±culas, series, música)"
       - "homepage.icon=jellyfin.svg"
-      - "homepage.href=http://${LAN_IP}:3002"
+      - "homepage.href=http://192.168.1.5:3002"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -49,7 +49,7 @@ services:
       - "homepage.name=Sonarr"
       - "homepage.description=Automatizació±±±n de series (TV)"
       - "homepage.icon=sonarr.svg"
-      - "homepage.href=http://${LAN_IP}:3003"
+      - "homepage.href=http://192.168.1.5:3003"
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -72,7 +72,7 @@ services:
       - "homepage.name=Radarr"
       - "homepage.description=Automatizació±±±n de pelí±± ±culas"
       - "homepage.icon=radarr.svg"
-      - "homepage.href=http://${LAN_IP}:3004"
+      - "homepage.href=http://192.168.1.5:3004"
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -93,7 +93,7 @@ services:
       - "homepage.name=Prowlarr"
       - "homepage.description=Í± ±ndice de torrents (Sonarr/Radarr)"
       - "homepage.icon=prowlarr.svg"
-      - "homepage.href=http://${LAN_IP}:3005"
+      - "homepage.href=http://192.168.1.5:3005"
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
@@ -116,7 +116,7 @@ services:
       - "homepage.name=Bazarr"
       - "homepage.description=Subtí±± ±tulos para Sonarr/Radarr"
       - "homepage.icon=bazarr.svg"
-      - "homepage.href=http://${LAN_IP}:3006"
+      - "homepage.href=http://192.168.1.5:3006"
 
   transmission:
     image: lscr.io/linuxserver/transmission:latest
@@ -142,7 +142,7 @@ services:
       - "homepage.name=Transmission"
       - "homepage.description=Cliente de torrents"
       - "homepage.icon=transmission.svg"
-      - "homepage.href=http://${LAN_IP}:3007"
+      - "homepage.href=http://192.168.1.5:3007"
 
 networks:
   homelab:
