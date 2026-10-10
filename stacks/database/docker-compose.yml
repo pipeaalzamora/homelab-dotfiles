@@ -8,16 +8,10 @@ services:
     volumes:
       - ${HOMELAB_ROOT}/data/baserow:/baserow/data
     environment:
-      - BASEROW_PUBLIC_URL=http://${LAN_IP}:3010
-      - BASEROW_JWT_SECRET=${BASEROW_JWT_SECRET:?defini BASEROW_JWT_SECRET en .env}
+      - BASEROW_PUBLIC_URL=http://192.168.1.5:3010
+      - BASEROW_JWT_SECRET=ed3cda6c2c586329e6711daf2879807e5ac19bccab8a6ee591fb42f639a12a27
     healthcheck:
-<<<<<<< HEAD
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/user/token-auth/"]
-||||||| 12b6dc4
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-=======
-      test: ["CMD", "curl", "-f", "http://localhost:80/api/_health/"]
->>>>>>> 1ef270cf9b7e1ddd8db302309bee6f51fcc1a608
       interval: 30s
       timeout: 10s
       retries: 5
